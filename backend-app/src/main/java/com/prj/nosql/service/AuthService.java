@@ -18,10 +18,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -249,6 +246,37 @@ public class AuthService {
             logger.error("Decryption error for string: " + encrypted, e);
             return "[decryption error]";
         }
+    }
+    public List<UserResponse> getUsersByRole(UserRole role) {
+        List<User> users = userRepository.findByRole(role);
+        return users.stream()
+                .map(this::convertToUserResponse)
+                .collect(Collectors.toList());
+    }
+    public UserResponse updateUser(String id, UpdateUserRequest request) {
+        Optional<User> optionalUser = userRepository.findById(id);
+        if (optionalUser.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+
+        User user = optionalUser.get();
+
+        // Mise à jour des champs
+        user.setNom(request.getNom());
+        user.setPrenom(request.getPrenom());
+        user.setUsername(request.getUsername());
+
+        if (request.getPlainPassword() != null && !request.getPlainPassword().isBlank()) {
+            String hashed = passwordEncoder.encode(request.getPlainPassword());
+            user.setPassword(hashed);
+            user.setPlainPassword(request.getPlainPassword());
+        }
+
+        user.generateEmail(); // Regénérer l'email si nom/prénom changent
+        user.setUpdatedAt(new Date());
+
+        userRepository.save(user);
+        return convertToUserResponse(user);
     }
 
 }
