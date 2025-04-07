@@ -9,10 +9,7 @@ import com.prj.nosql.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -75,6 +72,21 @@ public class ClasseService {
         }
 
         return convertToResponse(classe);
+    }
+    public List<User> getEtudiantsSansClasse() {
+        // Récupérer tous les étudiants
+        List<User> tousLesEtudiants = userRepository.findByRole(UserRole.STUDENT);
+
+        // Récupérer tous les IDs d'étudiants déjà affectés à une classe
+        List<Classe> toutesLesClasses = classeRepository.findAll();
+        Set<String> etudiantAffectes = toutesLesClasses.stream()
+                .flatMap(classe -> classe.getEtudiantIds().stream())
+                .collect(Collectors.toSet());
+
+        // Filtrer ceux qui ne sont dans aucune classe
+        return tousLesEtudiants.stream()
+                .filter(etudiant -> !etudiantAffectes.contains(etudiant.getId()))
+                .collect(Collectors.toList());
     }
 
     private ClasseResponse convertToResponse(Classe classe) {

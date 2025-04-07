@@ -1,12 +1,14 @@
 package com.prj.nosql.controller;
 
 import com.prj.nosql.dto.*;
+import com.prj.nosql.model.User;
 import com.prj.nosql.service.ClasseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin/classes")
@@ -41,8 +43,17 @@ public class ClasseController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/affecter-etudiant")
+    @PostMapping("/{id}/affecter-etudiant")
     public ResponseEntity<ClasseResponse> affecterEtudiant(@RequestBody AffectationEtudiantRequest request) {
         return ResponseEntity.ok(classeService.affecterEtudiant(request));
+    }
+    @GetMapping("/{id}/affecter-etudiant")
+    public ResponseEntity<List<SimpleUserResponse>> getEtudiantsSansClasse() {
+        List<User> etudiants = classeService.getEtudiantsSansClasse();
+        // Mapper les entités User vers des DTOs si tu veux éviter d'exposer tout
+        List<SimpleUserResponse> response = etudiants.stream()
+                .map(user -> new SimpleUserResponse(user.getId(), user.getFullName(), user.getEmail()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 }
