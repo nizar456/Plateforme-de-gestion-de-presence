@@ -135,4 +135,7 @@ public class ModuleService {
 
         return response;
     }
+    public List<Module> getModulesByProfesseur(String professeurId) {
+        return moduleRepository.findByProfesseurId(professeurId);
+    }
 }
