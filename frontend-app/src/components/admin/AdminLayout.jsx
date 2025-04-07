@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Link, useLocation, useNavigate } from "react-router-dom"
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Menu,
   X,
@@ -19,64 +19,123 @@ import {
   BarChart2,
   HelpCircle,
   MessageSquare,
+  GraduationCap,
   Moon,
   Sun,
-} from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useTheme } from "../../context/ThemeContext"
+  UserCog,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "../../context/ThemeContext";
+import EnsaLogo from "../../assets/Ensa_logo.png";
 
 function AdminLayout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const [notificationsOpen, setNotificationsOpen] = useState(false)
-  const location = useLocation()
-  const navigate = useNavigate()
-  const { theme, toggleTheme } = useTheme()
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   const navigation = [
-    { name: "Tableau de Bord", href: "/admin/dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
-    { name: "Étudiants", href: "/admin/students", icon: <Users className="h-5 w-5" /> },
-    { name: "Cours", href: "/admin/courses", icon: <BookOpen className="h-5 w-5" /> },
-    { name: "Calendrier", href: "/admin/calendar", icon: <Calendar className="h-5 w-5" /> },
-    { name: "Documents", href: "/admin/documents", icon: <FileText className="h-5 w-5" /> },
-    { name: "Rapports", href: "/admin/reports", icon: <BarChart2 className="h-5 w-5" /> },
-  ]
+    {
+      name: "Tableau de Bord",
+      href: "/admin/dashboard",
+      icon: <LayoutDashboard className="h-5 w-5" />,
+    },
+    {
+      name: "Étudiants",
+      href: "/admin/students",
+      icon: <Users className="h-5 w-5" />,
+    },
+    {
+      name: "Professeurs",
+      href: "/admin/professors",
+      icon: <GraduationCap className="h-5 w-5" />,
+    },
+    {
+      name: "Administrateurs",
+      href: "/admin/admins",
+      icon: <UserCog className="h-5 w-5" />,
+    },
+    {
+      name: "Cours",
+      href: "/admin/courses",
+      icon: <BookOpen className="h-5 w-5" />,
+    },
+    {
+      name: "Calendrier",
+      href: "/admin/calendar",
+      icon: <Calendar className="h-5 w-5" />,
+    },
+    {
+      name: "Documents",
+      href: "/admin/documents",
+      icon: <FileText className="h-5 w-5" />,
+    },
+    {
+      name: "Rapports",
+      href: "/admin/reports",
+      icon: <BarChart2 className="h-5 w-5" />,
+    },
+  ];
 
   const secondaryNavigation = [
-    { name: "Paramètres", href: "/admin/settings", icon: <Settings className="h-5 w-5" /> },
-    { name: "Aide", href: "/admin/help", icon: <HelpCircle className="h-5 w-5" /> },
-    { name: "Messages", href: "/admin/messages", icon: <MessageSquare className="h-5 w-5" /> },
-  ]
+    {
+      name: "Paramètres",
+      href: "/admin/settings",
+      icon: <Settings className="h-5 w-5" />,
+    },
+    {
+      name: "Aide",
+      href: "/admin/help",
+      icon: <HelpCircle className="h-5 w-5" />,
+    },
+    {
+      name: "Messages",
+      href: "/admin/messages",
+      icon: <MessageSquare className="h-5 w-5" />,
+    },
+  ];
 
   const notifications = [
-    { id: 1, title: "Nouvelle inscription", description: "Un nouvel étudiant s'est inscrit", time: "Il y a 5 minutes" },
+    {
+      id: 1,
+      title: "Nouvelle inscription",
+      description: "Un nouvel étudiant s'est inscrit",
+      time: "Il y a 5 minutes",
+    },
     {
       id: 2,
       title: "Mise à jour du système",
       description: "Le système sera mis à jour ce soir",
       time: "Il y a 1 heure",
     },
-    { id: 3, title: "Nouveau message", description: "Vous avez reçu un nouveau message", time: "Il y a 3 heures" },
-  ]
+    {
+      id: 3,
+      title: "Nouveau message",
+      description: "Vous avez reçu un nouveau message",
+      time: "Il y a 3 heures",
+    },
+  ];
 
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen)
-  }
+    setSidebarOpen(!sidebarOpen);
+  };
 
   const toggleUserMenu = () => {
-    setUserMenuOpen(!userMenuOpen)
-    if (notificationsOpen) setNotificationsOpen(false)
-  }
+    setUserMenuOpen(!userMenuOpen);
+    if (notificationsOpen) setNotificationsOpen(false);
+  };
 
   const toggleNotifications = () => {
-    setNotificationsOpen(!notificationsOpen)
-    if (userMenuOpen) setUserMenuOpen(false)
-  }
+    setNotificationsOpen(!notificationsOpen);
+    if (userMenuOpen) setUserMenuOpen(false);
+  };
 
   const handleLogout = () => {
     // Logique de déconnexion
-    navigate("/connexion")
-  }
+    navigate("/connexion");
+  };
 
   return (
     <div className="h-screen flex overflow-hidden bg-background text-foreground">
@@ -117,7 +176,11 @@ function AdminLayout({ children }) {
               <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
                 <div className="flex-shrink-0 flex items-center px-4">
                   <Link to="/admin/dashboard" className="flex items-center">
-                    <span className="text-xl font-bold text-blue-600">Admin Université</span>
+                    <img
+                      src={EnsaLogo} // Remplace ça par le bon chemin de ton image
+                      alt="Logo Université"
+                      className="h-10 w-auto" // Ajuste la taille ici si besoin
+                    />
                   </Link>
                 </div>
                 <nav className="mt-5 px-2 space-y-1">
@@ -160,7 +223,9 @@ function AdminLayout({ children }) {
                       </span>
                     </div>
                     <div className="ml-3">
-                      <p className="text-base font-medium text-gray-700 dark:text-gray-300">Jean Dupont</p>
+                      <p className="text-base font-medium text-gray-700 dark:text-gray-300">
+                        Jean Dupont
+                      </p>
                       <p className="text-sm font-medium text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300">
                         Administrateur
                       </p>
@@ -180,7 +245,11 @@ function AdminLayout({ children }) {
             <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
               <div className="flex items-center flex-shrink-0 px-4">
                 <Link to="/admin/dashboard" className="flex items-center">
-                  <span className="text-xl font-bold text-blue-600">Admin Université</span>
+                  <img
+                    src={EnsaLogo} // Remplace par le bon chemin si besoin
+                    alt="Admin Université"
+                    className="h-15 w-auto"
+                  />
                 </Link>
               </div>
               <nav className="mt-5 flex-1 px-2 space-y-1">
@@ -251,7 +320,9 @@ function AdminLayout({ children }) {
                     </span>
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Jean Dupont</p>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Jean Dupont
+                    </p>
                     <p className="text-xs font-medium text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300">
                       Administrateur
                     </p>
@@ -298,7 +369,11 @@ function AdminLayout({ children }) {
                 onClick={toggleTheme}
                 className="p-1 rounded-full text-gray-400 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                {theme === "dark" ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
+                {theme === "dark" ? (
+                  <Sun className="h-6 w-6" />
+                ) : (
+                  <Moon className="h-6 w-6" />
+                )}
               </button>
 
               {/* Bouton de notifications */}
@@ -317,7 +392,9 @@ function AdminLayout({ children }) {
                 {notificationsOpen && (
                   <div className="origin-top-right absolute right-0 mt-2 w-80 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none">
                     <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                      <h3 className="text-sm font-medium text-gray-900 dark:text-white">Notifications</h3>
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                        Notifications
+                      </h3>
                     </div>
                     <div className="max-h-60 overflow-y-auto">
                       {notifications.map((notification) => (
@@ -333,9 +410,15 @@ function AdminLayout({ children }) {
                               </span>
                             </div>
                             <div className="ml-3 w-0 flex-1">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">{notification.title}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{notification.description}</p>
-                              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{notification.time}</p>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                {notification.title}
+                              </p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {notification.description}
+                              </p>
+                              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                                {notification.time}
+                              </p>
                             </div>
                           </div>
                         </a>
@@ -411,11 +494,12 @@ function AdminLayout({ children }) {
           </div>
         </div>
 
-        <main className="flex-1 relative overflow-y-auto focus:outline-none bg-background">{children}</main>
+        <main className="flex-1 relative overflow-y-auto focus:outline-none bg-background">
+          {children}
+        </main>
       </div>
     </div>
-  )
+  );
 }
 
-export default AdminLayout
-
+export default AdminLayout;

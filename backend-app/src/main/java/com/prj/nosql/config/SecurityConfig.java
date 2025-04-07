@@ -40,7 +40,10 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable()
+        http
+                .cors() // 👈 Ajoute ceci
+                .and()
+                .csrf().disable()
                 .authorizeHttpRequests()
                 .requestMatchers("/api/auth/login", "/api/auth/init").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
