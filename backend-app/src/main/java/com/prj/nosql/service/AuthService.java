@@ -272,7 +272,7 @@ public class AuthService {
             user.setPlainPassword(request.getPlainPassword());
         }
 
-        user.generateEmail(); // Regénérer l'email si nom/prénom changent
+        user.setEmail(request.getEmail()); // Regénérer l'email si nom/prénom changent
         user.setUpdatedAt(new Date());
 
         userRepository.save(user);

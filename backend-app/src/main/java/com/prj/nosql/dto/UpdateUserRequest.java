@@ -8,6 +8,7 @@ public class UpdateUserRequest {
     private String nom;
     private String prenom;
     private String username;
+    private String email;
     private UserRole role;
     private boolean passwordChanged;
     private String plainPassword;
