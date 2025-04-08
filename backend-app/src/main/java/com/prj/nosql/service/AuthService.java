@@ -262,9 +262,18 @@ public class AuthService {
         User user = optionalUser.get();
 
         // Mise à jour des champs
-        user.setNom(request.getNom());
-        user.setPrenom(request.getPrenom());
-        user.setUsername(request.getUsername());
+        if (request.getNom() != null) {
+            user.setNom(request.getNom());
+        }
+        if (request.getPrenom() != null) {
+            user.setPrenom(request.getPrenom());
+        }
+        if (request.getUsername() != null) {
+            user.setUsername(request.getUsername());
+        }
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail());
+        }
 
         if (request.getPlainPassword() != null && !request.getPlainPassword().isBlank()) {
             String hashed = passwordEncoder.encode(request.getPlainPassword());
@@ -272,7 +281,6 @@ public class AuthService {
             user.setPlainPassword(request.getPlainPassword());
         }
 
-        user.setEmail(request.getEmail()); // Regénérer l'email si nom/prénom changent
         user.setUpdatedAt(new Date());
 
         userRepository.save(user);
