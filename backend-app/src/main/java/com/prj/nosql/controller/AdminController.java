@@ -54,7 +54,7 @@ public class AdminController {
         return ResponseEntity.ok(authService.getUserById(id));
     }
     // 🔁 1. Ajouter un utilisateur (spécifique à un rôle)
-    @PostMapping("/users/roles/{role}")
+    @PostMapping("/{role}")
     public ResponseEntity<UserResponse> createUserByRole(
             @PathVariable String role,
             @RequestBody CreateUserRequest request
@@ -73,7 +73,7 @@ public class AdminController {
     }
 
     // 🔁 2. Liste des utilisateurs par rôle
-    @GetMapping("/users/roles/{role}")
+    @GetMapping("/{role}")
     public ResponseEntity<List<UserResponse>> getUsersByRole(@PathVariable String role) {
         try {
             UserRole userRole = UserRole.valueOf(role.toUpperCase());
