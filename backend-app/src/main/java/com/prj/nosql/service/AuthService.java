@@ -250,7 +250,21 @@ public class AuthService {
     public List<UserResponse> getUsersByRole(UserRole role) {
         List<User> users = userRepository.findByRole(role);
         return users.stream()
-                .map(this::convertToUserResponse)
+                .map(user -> {
+                    UserResponse res = convertToUserResponse(user);
+                    // Vérifier si plainPassword n'est pas null avant de déchiffrer
+                    if (user.getPlainPassword() != null && !user.getPlainPassword().isEmpty()) {
+                        try {
+                            res.setDecryptedPassword(decryptPassword(user.getPlainPassword()));
+                        } catch (Exception e) {
+                            res.setDecryptedPassword("[Error decrypting]");
+                            logger.error("Error decrypting password for user " + user.getUsername(), e);
+                        }
+                    } else {
+                        res.setDecryptedPassword("Password changee");
+                    }
+                    return res;
+                })
                 .collect(Collectors.toList());
     }
     public UserResponse updateUser(String id, UpdateUserRequest request) {
