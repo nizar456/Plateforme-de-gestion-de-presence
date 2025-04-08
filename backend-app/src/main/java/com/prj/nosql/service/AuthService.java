@@ -179,6 +179,7 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        user.setPlainPassword(encryptPassword(newPassword));
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setPasswordChanged(false); // Force user to change password on next login
         user.setUpdatedAt(new Date());

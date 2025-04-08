@@ -101,7 +101,7 @@ public class AdminController {
         }
     }
 
-    @PostMapping("/users/{id}/change-password")
+    @PutMapping("/users/{id}/change-password")
     public ResponseEntity<?> adminChangePassword(@PathVariable String id, @RequestBody String newPassword) {
         authService.adminChangePassword(id, newPassword);
         return ResponseEntity.ok().build();
