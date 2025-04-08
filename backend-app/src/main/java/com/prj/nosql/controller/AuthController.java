@@ -79,6 +79,16 @@ public class AuthController {
                     .body("Identifiants incorrects");
         }
     }
+    //token 3ayb9a 5edame hna mais had l fonction 4i 3atm7i les infos de connex ce qui donne logout
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(Authentication authentication) {
+        SecurityContextHolder.clearContext(); // Efface le contexte de sécurité (utile pour session-based)
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Déconnexion réussie. Veuillez supprimer le token côté client.");
+        return ResponseEntity.ok(response);
+    }
+
 
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request) {
