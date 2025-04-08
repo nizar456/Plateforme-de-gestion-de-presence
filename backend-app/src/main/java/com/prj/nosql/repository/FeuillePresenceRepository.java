@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface FeuillePresenceRepository extends MongoRepository<FeuillePresence, String> {
     List<FeuillePresence> findByModuleId(String moduleId);
+    List<FeuillePresence> findByModuleIdIn(List<String> moduleIds);
+
 }

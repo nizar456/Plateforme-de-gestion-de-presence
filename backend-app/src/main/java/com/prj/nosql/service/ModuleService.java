@@ -138,4 +138,35 @@ public class ModuleService {
     public List<Module> getModulesByProfesseur(String professeurId) {
         return moduleRepository.findByProfesseurId(professeurId);
     }
+    public ModuleCreationDataResponse getModuleCreationData() {
+        List<ClasseDto> classes = classeRepository.findAll().stream()
+                .map(c -> new ClasseDto(c.getId(), c.getNom(),c.getNiveau()))
+                .toList();
+
+        List<ProfesseurDto> profs = userRepository.findByRole(UserRole.PROFESSOR).stream()
+                .map(p -> new ProfesseurDto(p.getId(), p.getNom(), p.getPrenom()))
+                .toList();
+
+        return new ModuleCreationDataResponse(classes, profs);
+    }
+    public ModuleEditDataResponse getModuleEditData(String moduleId) {
+        Module module = moduleRepository.findById(moduleId)
+                .orElseThrow(() -> new RuntimeException("Module non trouvé"));
+
+        ModuleUpdateRequest currentData = new ModuleUpdateRequest();
+        currentData.setTitre(module.getTitre());
+        currentData.setDescription(module.getDescription());
+        currentData.setClasseId(module.getClasseId());
+        currentData.setProfesseurId(module.getProfesseurId());
+
+        List<ClasseDto> classes = classeRepository.findAll().stream()
+                .map(c -> new ClasseDto(c.getId(), c.getNom(),c.getNiveau()))
+                .toList();
+
+        List<ProfesseurDto> professeurs = userRepository.findByRole(UserRole.PROFESSOR).stream()
+                .map(p -> new ProfesseurDto(p.getId(), p.getNom(), p.getPrenom()))
+                .toList();
+
+        return new ModuleEditDataResponse(currentData, classes, professeurs);
+    }
 }

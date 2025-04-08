@@ -5,6 +5,7 @@ import com.prj.nosql.model.Absence;
 import com.prj.nosql.model.FeuillePresence;
 import com.prj.nosql.model.Module;
 import com.prj.nosql.model.User;
+import com.prj.nosql.service.AbsenceService;
 import com.prj.nosql.service.FeuillePresenceService;
 import com.prj.nosql.service.ModuleService;
 import jakarta.validation.Valid;
@@ -21,20 +22,24 @@ public class ModuleController {
 
     @Autowired
     private ModuleService moduleService;
+    @Autowired
+    private AbsenceService absenceService;
     private final FeuillePresenceService feuillePresenceService;
 
     public ModuleController(FeuillePresenceService feuillePresenceService) {
         this.feuillePresenceService = feuillePresenceService;
     }
-
-    @PostMapping("/admin/modules")
-    public ResponseEntity<ModuleResponse> createModule(@RequestBody ModuleCreateRequest request) {
-        return ResponseEntity.ok(moduleService.createModule(request));
-    }
-
     @GetMapping("/admin/modules")
     public ResponseEntity<List<ModuleResponse>> getAllModules() {
         return ResponseEntity.ok(moduleService.getAllModules());
+    }
+    @PostMapping("/admin/create-module")
+    public ResponseEntity<ModuleResponse> createModule(@RequestBody ModuleCreateRequest request) {
+        return ResponseEntity.ok(moduleService.createModule(request));
+    }
+    @GetMapping("/admin/create-module")
+    public ResponseEntity<ModuleCreationDataResponse> getModuleCreationData() {
+        return ResponseEntity.ok(moduleService.getModuleCreationData());
     }
 
     @GetMapping("/admin/modules/{id}")
@@ -42,11 +47,15 @@ public class ModuleController {
         return ResponseEntity.ok(moduleService.getModuleById(id));
     }
 
-    @PutMapping("/admin/modules/{id}")
+    @PutMapping("/admin/modules/{id}/edit-data")
     public ResponseEntity<ModuleResponse> updateModule(
             @PathVariable String id,
             @RequestBody ModuleUpdateRequest request) {
         return ResponseEntity.ok(moduleService.updateModule(id, request));
+    }
+    @GetMapping("/admin/modules/{id}/edit-data")
+    public ResponseEntity<ModuleEditDataResponse> getModuleEditData(@PathVariable String id) {
+        return ResponseEntity.ok(moduleService.getModuleEditData(id));
     }
 
         @DeleteMapping("/admin/modules/{id}")
@@ -55,10 +64,10 @@ public class ModuleController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/admin/modules/affecter")
+    /* @PostMapping("/admin/modules/affecter")
     public ResponseEntity<ModuleResponse> affecterModule(@RequestBody AffectationModuleRequest request) {
         return ResponseEntity.ok(moduleService.affecterModule(request));
-    }
+    } */
     @GetMapping("/professor/modules")
     public ResponseEntity<List<Module>> getModulesEnseignes(Authentication auth) {
         User principal = (User) auth.getPrincipal();
@@ -103,6 +112,20 @@ public class ModuleController {
     public ResponseEntity<Void> supprimerFeuillePresence(@PathVariable String moduleId, @PathVariable String id) {
         feuillePresenceService.supprimerFeuillePresence(id);
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/professor/modules/{moduleId}/feuilles-presence/{id}/justifications")
+    public ResponseEntity<List<JustificationResponseDto>> getJustificationsEnAttente(Authentication auth) {
+        User prof = (User) auth.getPrincipal();
+        return ResponseEntity.ok(absenceService.getJustificationsEnAttente(prof.getId()));
+    }
+    @PutMapping("/professor/modules/{moduleId}/feuilles-presence/{id}/justifications/{absenceId}/statut")
+    public ResponseEntity<String> updateStatutJustification(
+            @PathVariable String absenceId,
+            @RequestBody JustificationStatutUpdateRequest request,
+            Authentication auth) {
+        User prof = (User) auth.getPrincipal();
+        absenceService.updateStatutJustification(absenceId, request.getStatut(), prof.getId());
+        return ResponseEntity.ok("Statut mis à jour avec succès");
     }
 
 }

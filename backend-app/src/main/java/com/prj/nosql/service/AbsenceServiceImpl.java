@@ -2,6 +2,7 @@ package com.prj.nosql.service;
 
 import com.prj.nosql.dto.AbsenceEtudiantDto;
 import com.prj.nosql.dto.JustificationRequest;
+import com.prj.nosql.dto.JustificationResponseDto;
 import com.prj.nosql.model.Absence;
 import com.prj.nosql.model.Module;
 import com.prj.nosql.model.FeuillePresence;
@@ -86,4 +87,48 @@ public class AbsenceServiceImpl implements AbsenceService{
 
         absenceRepo.save(absence);
     }
+    @Override
+    public List<JustificationResponseDto> getJustificationsEnAttente(String professeurId) {
+        List<Module> modules = moduleRepo.findByProfesseurId(professeurId);
+        List<String> moduleIds = modules.stream().map(Module::getId).toList();
+        List<FeuillePresence> feuilles = feuilleRepo.findByModuleIdIn(moduleIds);
+        List<String> feuilleIds = feuilles.stream().map(FeuillePresence::getId).toList();
+
+        List<Absence> absences = absenceRepo.findByFeuillePresenceIdInAndJustificationStatut(feuilleIds, Absence.JustificationStatut.EN_ATTENTE);
+
+        return absences.stream().filter(Absence::isJustifie).map(abs -> {
+            User etudiant = userRepo.findById(abs.getEtudiantId()).orElse(null);
+            FeuillePresence feuille = feuilleRepo.findById(abs.getFeuillePresenceId()).orElse(null);
+            Module module = moduleRepo.findById(feuille.getModuleId()).orElse(null);
+            return new JustificationResponseDto(
+                    abs.getId(),
+                    etudiant.getNom(),
+                    etudiant.getPrenom(),
+                    module.getTitre(),
+                    feuille.getDateSeance().toString(),
+                    abs.getJustificationText(),
+                    abs.getJustificationDocumentPath(),
+                    abs.getJustificationStatut().name()
+            );
+        }).toList();
+    }
+
+    @Override
+    public void updateStatutJustification(String absenceId, String statut, String professeurId) {
+        Absence absence = absenceRepo.findById(absenceId)
+                .orElseThrow(() -> new RuntimeException("Absence non trouvée"));
+        FeuillePresence feuille = feuilleRepo.findById(absence.getFeuillePresenceId())
+                .orElseThrow(() -> new RuntimeException("Feuille non trouvée"));
+        Module module = moduleRepo.findById(feuille.getModuleId())
+                .orElseThrow(() -> new RuntimeException("Module non trouvé"));
+
+        if (!module.getProfesseurId().equals(professeurId)) {
+            throw new RuntimeException("Non autorisé");
+        }
+
+        Absence.JustificationStatut newStatut = Absence.JustificationStatut.valueOf(statut);
+        absence.setJustificationStatut(newStatut);
+        absenceRepo.save(absence);
+    }
+
 }

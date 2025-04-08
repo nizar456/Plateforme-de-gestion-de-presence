@@ -10,5 +10,7 @@ public interface AbsenceRepository extends MongoRepository<Absence, String> {
     List<Absence> findByFeuillePresenceIdAndJustificationStatutIn(String feuilleId, List<Absence.JustificationStatut> statuts);
     void deleteByFeuillePresenceId(String feuillePresenceId);
     List<Absence> findByEtudiantId(String etudiantId);
+    List<Absence> findByFeuillePresenceIdInAndJustificationStatut(List<String> feuilleIds, Absence.JustificationStatut statut);
+
 
 }
