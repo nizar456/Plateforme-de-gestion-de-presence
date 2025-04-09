@@ -100,6 +100,16 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable String id) {
+        try {
+            authService.deleteUser(id);
+            return ResponseEntity.ok().body("Utilisateur supprimé avec succès.");
+        } catch (Exception e) {
+            logger.error("Erreur lors de la suppression de l'utilisateur", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne du serveur");
+        }
+    }
 
     @PutMapping("/users/{id}/change-password")
     public ResponseEntity<?> adminChangePassword(@PathVariable String id, @RequestBody String newPassword) {

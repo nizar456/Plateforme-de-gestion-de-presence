@@ -301,5 +301,12 @@ public class AuthService {
         userRepository.save(user);
         return convertToUserResponse(user);
     }
+    public void deleteUser(String id) {
+        Optional<User> optionalUser = userRepository.findById(id);
+        if (optionalUser.isEmpty()) {
+            throw new RuntimeException("Utilisateur non trouvé");
+        }
+        userRepository.deleteById(id);
+    }
 
 }
