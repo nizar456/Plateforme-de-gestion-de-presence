@@ -26,6 +26,9 @@ public class FeuillePresenceServiceImpl implements FeuillePresenceService {
     @Autowired
     private UserRepository userRepo;
 
+    @Autowired
+    private MailService mailService;
+
     @Override
     public FeuillePresenceDetailsDto creerFeuillePresence(String moduleId, String professeurId, FeuillePresenceCreateRequest request) {
         Module module = moduleRepo.findById(moduleId)
@@ -51,6 +54,20 @@ public class FeuillePresenceServiceImpl implements FeuillePresenceService {
             a.setJustificationStatut(Absence.JustificationStatut.EN_ATTENTE);
             return a;
         }).toList();
+
+        absences.forEach(abs -> {
+            userRepo.findById(abs.getEtudiantId()).ifPresent(etudiant -> {
+                String email = etudiant.getEmail();
+                if (email != null && !email.isBlank()) {
+                    try {
+                        mailService.envoyerMailAbsence(etudiant.getEmail(), etudiant.getPrenom(), module.getTitre(), newFeuille.getDateSeance());
+                    } catch (Exception e) {
+                        System.err.println("Erreur lors de l'envoi du mail à : " + email);
+                        e.printStackTrace();
+                    }
+                }
+            });
+        });
 
         absenceRepo.saveAll(absences);
 
