@@ -1,54 +1,43 @@
-import axios from "axios"
+import axios from "axios";
 
-// Create axios instance with base URL
-const API_BASE_URL = "http://localhost:8082/api"
+const API_BASE_URL = "http://localhost:8082/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
-})
+});
 
-// Request interceptor for adding the auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("token");
     if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`
+      config.headers["Authorization"] = `Bearer ${token}`;
     }
-    return config
+    return config;
   },
-  (error) => {
-    return Promise.reject(error)
-  },
-)
+  (error) => Promise.reject(error)
+);
 
-// Response interceptor for handling common errors
 api.interceptors.response.use(
-  (response) => {
-    return response
-  },
+  (response) => response,
   (error) => {
-    // Handle 401 Unauthorized errors (token expired)
     if (error.response && error.response.status === 401) {
-      // Clear local storage and redirect to login
-      localStorage.removeItem("token")
-      localStorage.removeItem("user")
-      window.location.href = "/connexion"
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/connexion";
     }
-    return Promise.reject(error)
-  },
-)
+    return Promise.reject(error);
+  }
+);
 
-// Authentication Service
 const authService = {
   login: async (username, password) => {
     try {
-      const response = await api.post("/auth/login", { username, password })
+      const response = await api.post("/auth/login", { username, password });
       if (response.data.token) {
-        console.log(response.data.token);
-        localStorage.setItem("token", response.data.token)
+        localStorage.setItem("token", response.data.token);
         localStorage.setItem(
           "user",
           JSON.stringify({
@@ -58,240 +47,207 @@ const authService = {
             role: response.data.role,
             fullName: response.data.fullName,
             requiresPasswordChange: response.data.requiresPasswordChange,
-          }),
-        )
+          })
+        );
       }
-      return response.data
+      return response.data;
     } catch (error) {
       if (
-        error.response &&
-        error.response.status === 403 &&
+        error.response?.status === 403 &&
         error.response.data.status === "PASSWORD_CHANGE_REQUIRED"
       ) {
-        // Handle password change required
-        localStorage.setItem("tempToken", error.response.data.tempToken)
+        localStorage.setItem("tempToken", error.response.data.tempToken);
         return {
           status: "PASSWORD_CHANGE_REQUIRED",
           message: error.response.data.message,
           tempToken: error.response.data.tempToken,
-        }
+        };
       }
-      throw error
+      throw error;
     }
   },
 
   register: async (userData) => {
-    const response = await api.post("/auth/register", userData)
-    return response.data
+    const response = await api.post("/auth/register", userData);
+    return response.data;
   },
 
-  changePassword: async (oldPassword, newPassword) => {
-    const token = localStorage.getItem("token") || localStorage.getItem("tempToken")
-    if (!token) {
-      throw new Error("No authentication token found")
+  changePassword: async (currentPassword, newPassword) => {
+    const originalToken = localStorage.getItem("token");
+    const tempToken = localStorage.getItem("tempToken");
+
+    if (!originalToken && !tempToken) {
+      throw new Error("No authentication token found");
     }
 
     try {
-      const response = await api.post(
-        "/auth/change-password",
-        {
-          oldPassword,
-          newPassword,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      )
-
-      // If this was a temp token, remove it and redirect to login
-      if (localStorage.getItem("tempToken")) {
-        localStorage.removeItem("tempToken")
-        return { success: true, message: "Password changed successfully. Please login with your new password." }
+      if (tempToken) {
+        localStorage.setItem("token", tempToken);
       }
 
-      return response.data
+      const response = await api.post("/auth/change-password", {
+        currentPassword,
+        newPassword,
+      });
+
+      if (tempToken) {
+        localStorage.removeItem("tempToken");
+        originalToken
+          ? localStorage.setItem("token", originalToken)
+          : localStorage.removeItem("token");
+      }
+
+      return {
+        success: true,
+        message: response.data.message || "Password changed successfully",
+      };
     } catch (error) {
-      throw error
+      if (tempToken) {
+        localStorage.removeItem("tempToken");
+        originalToken
+          ? localStorage.setItem("token", originalToken)
+          : localStorage.removeItem("token");
+      }
+      throw error;
     }
   },
 
-  logout: () => {
-    localStorage.removeItem("token")
-    localStorage.removeItem("user")
-    localStorage.removeItem("tempToken")
+  logout: async () => {
+    try {
+      // Call the backend logout endpoint
+      await api.post("/auth/logout");
+      
+      // Clear local storage regardless of backend response
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("tempToken");
+      
+      return { success: true, message: "Logged out successfully" };
+    } catch (error) {
+      // Even if the backend logout fails, clear client-side tokens
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("tempToken");
+      
+      console.error("Logout error:", error);
+      return { 
+        success: false, 
+        message: error.response?.data?.message || "Logout completed client-side but server logout failed" 
+      };
+    }
   },
 
   getCurrentUser: () => {
-    const userStr = localStorage.getItem("user")
-    if (userStr) {
-      return JSON.parse(userStr)
-    }
-    return null
+    const userStr = localStorage.getItem("user");
+    return userStr ? JSON.parse(userStr) : null;
   },
 
-  isAuthenticated: () => {
-    return !!localStorage.getItem("token")
-  },
+  isAuthenticated: () => !!localStorage.getItem("token"),
 
-  getToken: () => {
-    return localStorage.getItem("token")
-  },
+  getToken: () => localStorage.getItem("token"),
 
   hasRole: (requiredRole) => {
-    const user = authService.getCurrentUser()
-    return user && user.role === requiredRole
+    const user = authService.getCurrentUser();
+    return user?.role === requiredRole;
   },
-}
+};
+// ... (keep all the imports and axios configuration above the same)
 
-// User Service
-const userService = {
-  getUserProfile: async () => {
-    const response = await api.get("/users/profile")
-    return response.data
-  },
+const adminUserService = {
+  // General user endpoints
+  getAllUsers: async () => (await api.get("/admin/users")).data,
+  getUserById: async (id) => (await api.get(`/admin/users/${id}`)).data,
+  createUser: async (userData) => (await api.post("/admin/users", userData)).data,
+  updateUser: async (id, userData) => (await api.put(`/admin/users/${id}`, userData)).data,
+  deleteUser: async (id) => (await api.delete(`/admin/users/${id}`)).data,
+  adminChangePassword: async (id, newPassword) => 
+    (await api.put(`/admin/users/${id}/change-password`, { newPassword })).data,
+  
+  // Role-specific endpoints
+  createUserByRole: async (role, userData) => 
+    (await api.post(`/admin/${role}`, userData)).data,
+  getUsersByRole: async (role) => 
+    (await api.get(`/admin/${role}`)).data,
+};
 
-  updateUserProfile: async (userData) => {
-    const response = await api.put("/users/profile", userData)
-    return response.data
-  },
-
-  getAllUsers: async (page = 0, size = 10, sort = "id,asc", search = "") => {
-    const response = await api.get("/users", {
-      params: { page, size, sort, search },
-    })
-    return response.data
-  },
-
-  getUserById: async (id) => {
-    const response = await api.get(`/users/${id}`)
-    return response.data
-  },
-
-  createUser: async (userData) => {
-    const response = await api.post("/users", userData)
-    return response.data
-  },
-
-  updateUser: async (id, userData) => {
-    const response = await api.put(`/users/${id}`, userData)
-    return response.data
-  },
-
-  deleteUser: async (id) => {
-    const response = await api.delete(`/users/${id}`)
-    return response.data
-  },
-}
-
-// Student Service
+// Student Service with both old and new method names
 const studentService = {
-  getAllStudents: async (page = 0, size = 10, sort = "id,asc", search = "") => {
-    const response = await api.get("/students", {
-      params: { page, size, sort, search },
-    })
-    return response.data
-  },
+  getAll: async () => adminUserService.getUsersByRole("student"),
+  getById: async (id) => adminUserService.getUserById(id),
+  create: async (studentData) => adminUserService.createUserByRole("student", studentData),
+  update: async (id, studentData) => adminUserService.updateUser(id, studentData),
+  changePassword: async (id, newPassword) => adminUserService.adminChangePassword(id, newPassword),
 
-  getStudentById: async (id) => {
-    const response = await api.get(`/students/${id}`)
-    return response.data
-  },
+  // Old method names
+  getAllStudents: async () => adminUserService.getUsersByRole("student"),
+  getStudentById: async (id) => adminUserService.getUserById(id),
+  createStudent: async (studentData) => adminUserService.createUserByRole("student", studentData),
+  updateStudent: async (id, studentData) => adminUserService.updateUser(id, studentData),
+  deleteStudent: async (id) => adminUserService.deleteUser(id),
 
-  createStudent: async (studentData) => {
-    const response = await api.post("/students", studentData)
-    return response.data
-  },
+  // Alias for compatibility
+  addStudent: async (studentData) => adminUserService.createUserByRole("student", studentData),
+};
 
-  updateStudent: async (id, studentData) => {
-    const response = await api.put(`/students/${id}`, studentData)
-    return response.data
-  },
 
-  deleteStudent: async (id) => {
-    const response = await api.delete(`/students/${id}`)
-    return response.data
-  },
-}
-
-// Professor Service
+// Professor Service with both old and new method names
 const professorService = {
-  getAllProfessors: async (page = 0, size = 10, sort = "id,asc", search = "") => {
-    const response = await api.get("/professors", {
-      params: { page, size, sort, search },
-    })
-    return response.data
-  },
+  // New method names
+  getAll: async () => adminUserService.getUsersByRole("professor"),
+  getById: async (id) => adminUserService.getUserById(id),
+  create: async (professorData) => adminUserService.createUserByRole("professor", professorData),
+  update: async (id, professorData) => adminUserService.updateUser(id, professorData),
+  changePassword: async (id, newPassword) => adminUserService.adminChangePassword(id, newPassword),
+  
+  // Old method names (for backward compatibility)
+  getAllProfessors: async () => adminUserService.getUsersByRole("professor"),
+  getProfessorById: async (id) => adminUserService.getUserById(id),
+  createProfessor: async (professorData) => adminUserService.createUserByRole("professor", professorData),
+  updateProfessor: async (id, professorData) => adminUserService.updateUser(id, professorData),
+  deleteProfessor: async (id) => adminUserService.deleteUser(id),
+};
 
-  getProfessorById: async (id) => {
-    const response = await api.get(`/professors/${id}`)
-    return response.data
-  },
+// Admin Service with both old and new method names
+const adminService = {
+  // New method names
+  getAll: async () => adminUserService.getUsersByRole("admin"),
+  getById: async (id) => adminUserService.getUserById(id),
+  create: async (adminData) => adminUserService.createUserByRole("admin", adminData),
+  update: async (id, adminData) => adminUserService.updateUser(id, adminData),
+  changePassword: async (id, newPassword) => adminUserService.adminChangePassword(id, newPassword),
+  
+  // Old method names (for backward compatibility)
+  getAllAdmins: async () => adminUserService.getUsersByRole("admin"),
+  getAdminById: async (id) => adminUserService.getUserById(id),
+  createAdmin: async (adminData) => adminUserService.createUserByRole("admin", adminData),
+  updateAdmin: async (id, adminData) => adminUserService.updateUser(id, adminData),
+  deleteAdmin: async (id) => adminUserService.deleteUser(id),
+};
 
-  createProfessor: async (professorData) => {
-    const response = await api.post("/professors", professorData)
-    return response.data
-  },
+// Classe Service (keeping original method names)
+const classeService = {
+  getAllClasses: async () => (await api.get("/admin/classes")).data,
+  getClasseById: async (id) => (await api.get(`/admin/classes/${id}`)).data,
+  createClasse: async (classeData) => (await api.post("/admin/classes", classeData)).data,
+  updateClasse: async (id, classeData) => (await api.put(`/admin/classes/${id}`, classeData)).data,
+  deleteClasse: async (id) => (await api.delete(`/admin/classes/${id}`)).data,
+  affecterEtudiant: async (data) => (await api.post(`/admin/classes/affecter-etudiant`, data)).data,
+};
 
-  updateProfessor: async (id, professorData) => {
-    const response = await api.put(`/professors/${id}`, professorData)
-    return response.data
-  },
-
-  deleteProfessor: async (id) => {
-    const response = await api.delete(`/professors/${id}`)
-    return response.data
-  },
-}
-
-// Course Service
-const courseService = {
-  getAllCourses: async (page = 0, size = 10, sort = "id,asc", search = "") => {
-    const response = await api.get("/courses", {
-      params: { page, size, sort, search },
-    })
-    return response.data
-  },
-
-  getCourseById: async (id) => {
-    const response = await api.get(`/courses/${id}`)
-    return response.data
-  },
-
-  createCourse: async (courseData) => {
-    const response = await api.post("/courses", courseData)
-    return response.data
-  },
-
-  updateCourse: async (id, courseData) => {
-    const response = await api.put(`/courses/${id}`, courseData)
-    return response.data
-  },
-
-  deleteCourse: async (id) => {
-    const response = await api.delete(`/courses/${id}`)
-    return response.data
-  },
-}
-
-// Dashboard Service
+// Dashboard Service (keeping original method names)
 const dashboardService = {
-  getStatistics: async () => {
-    const response = await api.get("/dashboard/statistics")
-    return response.data
-  },
+  getStatistics: async () => (await api.get("/dashboard/statistics")).data,
+  getRecentActivities: async () => (await api.get("/dashboard/activities")).data,
+  getUpcomingEvents: async () => (await api.get("/dashboard/events")).data,
+};
 
-  getRecentActivities: async () => {
-    const response = await api.get("/dashboard/activities")
-    return response.data
-  },
-
-  getUpcomingEvents: async () => {
-    const response = await api.get("/dashboard/events")
-    return response.data
-  },
-}
-
-export { api, authService, userService, studentService, professorService, courseService, dashboardService }
-
+export {
+  api,
+  authService,
+  adminUserService,
+  studentService,
+  professorService,
+  adminService,
+  classeService,
+  dashboardService,
+};

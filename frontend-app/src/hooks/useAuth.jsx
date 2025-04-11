@@ -87,11 +87,11 @@ export const AuthProvider = ({ children }) => {
   }
 
   // Change password function
-  const changePassword = async (oldPassword, newPassword) => {
+  const changePassword = async (currentPassword, newPassword) => {
     setLoading(true)
     setError(null)
     try {
-      const response = await authService.changePassword(oldPassword, newPassword)
+      const response = await authService.changePassword(currentPassword, newPassword)
 
       // If this was a first-time password change
       if (response.success && response.message) {

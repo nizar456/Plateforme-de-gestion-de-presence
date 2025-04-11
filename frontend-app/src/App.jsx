@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router-dom"
 import { AuthProvider } from "./hooks/useAuth"
 import ProtectedRoute from "./components/auth/ProtectedRoute"
-
 import LandingPage from "./pages/LandingPage"
 import AcademicPage from "./pages/AcademicPage"
 import CampusLifePage from "./pages/CampusLifePage"
@@ -10,13 +9,26 @@ import AboutPage from "./pages/AboutPage"
 import ContactPage from "./pages/ContactPage"
 import LoginPage from "./pages/LoginPage"
 import SignUpPage from "./pages/SignUpPage"
+import ChangePasswordPage from "./pages/ChangePasswordPage"
+import UnauthorizedPage from "./pages/UnauthorizedPage"
+
+// Admin pages
 import DashboardPage from "./pages/admin/DashboardPage"
 import StudentsPage from "./pages/admin/StudentsPage"
-import CoursesPage from "./pages/admin/CoursesPage"
+import ClassesPage from "./pages/admin/ClassesPage"
 import SettingsPage from "./pages/admin/SettingsPage"
 import AdminsPage from "./pages/admin/AdminsPage"
 import ProfessorsPage from "./pages/admin/ProfessorsPage"
 
+// Professor pages (placeholders - you'll need to create these)
+import ProfessorDashboardPage from "./pages/professor/ProfessorDashboardPage"
+// import ProfessorCoursesPage from "./pages/professor/ProfessorCoursesPage"
+// import ProfessorStudentsPage from "./pages/professor/ProfessorStudentsPage"
+
+// Student pages (placeholders - you'll need to create these)
+// import StudentDashboardPage from "./pages/student/StudentDashboardPage"
+// import StudentCoursesPage from "./pages/student/StudentCoursesPage"
+// import StudentGradesPage from "./pages/student/StudentGradesPage"
 
 function App() {
   return (
@@ -31,8 +43,8 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/connexion" element={<LoginPage />} />
         <Route path="/inscription" element={<SignUpPage />} />
-        {/* <Route path="/change-password" element={<ChangePasswordPage />} />
-        <Route path="/unauthorized" element={<UnauthorizedPage />} /> */}
+        <Route path="/change-password" element={<ChangePasswordPage />} />
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
         {/* Routes d'administration */}
         <Route
@@ -52,10 +64,10 @@ function App() {
           }
         />
         <Route
-          path="/admin/courses"
+          path="/admin/classes"
           element={
             <ProtectedRoute requiredRole="ADMIN">
-              <CoursesPage />
+              <ClassesPage />
             </ProtectedRoute>
           }
         />
@@ -83,6 +95,60 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* Routes pour les professeurs */}
+        <Route
+          path="/professor/dashboard"
+          element={
+            <ProtectedRoute requiredRole="PROFESSOR">
+              <ProfessorDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* <Route
+          path="/professor/courses"
+          element={
+            <ProtectedRoute requiredRole="PROFESSOR">
+              <ProfessorCoursesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/professor/students"
+          element={
+            <ProtectedRoute requiredRole="PROFESSOR">
+              <ProfessorStudentsPage />
+            </ProtectedRoute>
+          }
+        /> */}
+        {/* Add more professor routes as needed */}
+
+        {/* Routes pour les étudiants */}
+        {/* <Route
+          path="/student/dashboard"
+          element={
+            <ProtectedRoute requiredRole="STUDENT">
+              <StudentDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/courses"
+          element={
+            <ProtectedRoute requiredRole="STUDENT">
+              <StudentCoursesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/grades"
+          element={
+            <ProtectedRoute requiredRole="STUDENT">
+              <StudentGradesPage />
+            </ProtectedRoute>
+          }
+        /> */}
+        {/* Add more student routes as needed */}
       </Routes>
     </AuthProvider>
   )
