@@ -256,18 +256,24 @@ function StudentsPage() {
   };
 
   const handlePasswordChange = async (studentId, newPassword) => {
-    setPasswordLoading(true);
     try {
+      setPasswordLoading(true);
       await adminUserService.adminChangePassword(studentId, newPassword);
-      // Show success message
-      alert("Password changed successfully!");
-      setIsPasswordModalOpen(false);
+      await fetchStudents(); // Refresh the student list
+      return true;
     } catch (error) {
       console.error("Error changing password:", error);
-      // Show error message
-      alert("Failed to change password");
+      throw error;
     } finally {
       setPasswordLoading(false);
+    }
+  };
+  const refreshStudents = async () => {
+    try {
+      const response = await studentService.getAllStudents();
+      setAllStudents(response);
+    } catch (err) {
+      console.error("Error refreshing students:", err);
     }
   };
 
@@ -653,9 +659,10 @@ function StudentsPage() {
         <ChangePasswordModal
           isOpen={isPasswordModalOpen}
           onClose={() => setIsPasswordModalOpen(false)}
-          onSubmit={handlePasswordChange}
-          isLoading={passwordLoading}
           studentId={selectedStudentId}
+          isLoading={passwordLoading}
+          setIsLoading={setPasswordLoading}
+          onSuccess={refreshStudents} // Pass the refresh function
         />
       </div>
     </AdminLayout>

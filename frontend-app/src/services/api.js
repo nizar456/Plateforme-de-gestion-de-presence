@@ -241,6 +241,174 @@ const dashboardService = {
   getUpcomingEvents: async () => (await api.get("/dashboard/events")).data,
 };
 
+
+const moduleService = {
+  // Admin Module Functions
+  getAllModules: async () => {
+    try {
+      const response = await api.get("/admin/modules");
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching modules:', error);
+      throw error;
+    }
+  },
+
+  createModule: async (request) => {
+    try {
+      const response = await api.post("/admin/create-module", request);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating module:', error);
+      throw error;
+    }
+  },
+
+  getModuleCreationData: async () => {
+    try {
+      const response = await api.get("/admin/create-module");
+      return response.data;
+    } catch (error) {
+      console.error('Error getting module creation data:', error);
+      throw error;
+    }
+  },
+
+  getModuleById: async (id) => {
+    try {
+      const response = await api.get(`/admin/modules/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching module by ID:', error);
+      throw error;
+    }
+  },
+
+  updateModule: async (id, request) => {
+    try {
+      const response = await api.put(`/admin/modules/${id}/edit-data`, request);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating module:', error);
+      throw error;
+    }
+  },
+
+  getModuleEditData: async (id) => {
+    try {
+      const response = await api.get(`/admin/modules/${id}/edit-data`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting module edit data:', error);
+      throw error;
+    }
+  },
+
+  deleteModule: async (id) => {
+    try {
+      const response = await api.delete(`/admin/modules/${id}`);
+      return response;
+    } catch (error) {
+      console.error('Error deleting module:', error);
+      throw error;
+    }
+  },
+
+  // Professor Module Functions
+  getModulesEnseignes: async () => {
+    try {
+      const response = await api.get("/professor/modules");
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching professor modules:', error);
+      throw error;
+    }
+  },
+
+  getEtudiantsPourFeuille: async (moduleId) => {
+    try {
+      const response = await api.get(`/professor/modules/${moduleId}/feuille-presence`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting students for attendance sheet:', error);
+      throw error;
+    }
+  },
+
+  creerFeuillePresence: async (moduleId, request) => {
+    try {
+      const response = await api.post(`/professor/modules/${moduleId}/feuille-presence`, request);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating attendance sheet:', error);
+      throw error;
+    }
+  },
+
+  getFeuillesPresenceParModule: async (moduleId) => {
+    try {
+      const response = await api.get(`/professor/modules/${moduleId}/feuilles-presence`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting attendance sheets by module:', error);
+      throw error;
+    }
+  },
+
+  getDetailsFeuillePresence: async (id) => {
+    try {
+      const response = await api.get(`/professor/modules/feuilles-presence/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting attendance sheet details:', error);
+      throw error;
+    }
+  },
+
+  modifierFeuillePresence: async (moduleId, id, request) => {
+    try {
+      const response = await api.put(`/professor/modules/${moduleId}/feuilles-presence/${id}`, request);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating attendance sheet:', error);
+      throw error;
+    }
+  },
+
+  supprimerFeuillePresence: async (moduleId, id) => {
+    try {
+      const response = await api.delete(`/professor/modules/${moduleId}/feuilles-presence/${id}`);
+      return response;
+    } catch (error) {
+      console.error('Error deleting attendance sheet:', error);
+      throw error;
+    }
+  },
+
+  getJustificationsEnAttente: async (moduleId, id) => {
+    try {
+      const response = await api.get(`/professor/modules/${moduleId}/feuilles-presence/${id}/justifications`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting pending justifications:', error);
+      throw error;
+    }
+  },
+
+  updateStatutJustification: async (moduleId, id, absenceId, request) => {
+    try {
+      const response = await api.put(
+        `/professor/modules/${moduleId}/feuilles-presence/${id}/justifications/${absenceId}/statut`,
+        request
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error updating justification status:', error);
+      throw error;
+    }
+  }
+};
+
 export {
   api,
   authService,
@@ -250,4 +418,5 @@ export {
   adminService,
   classeService,
   dashboardService,
+  moduleService,
 };

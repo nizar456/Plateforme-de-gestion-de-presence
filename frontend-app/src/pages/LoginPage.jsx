@@ -46,15 +46,28 @@ function LoginPage() {
     e.preventDefault()
     setError("")
     setIsSubmitting(true)
-
+  
     try {
       const result = await login(formData.username, formData.password)
-
+      console.log(result);
+  
       if (result.success) {
-        // Redirect based on user role
-        navigate(from, { replace: true })
+        const role = result.role?.toUpperCase()
+  
+        switch (role) {
+          case "ADMIN":
+            navigate("/admin/dashboard", { replace: true })
+            break
+          case "PROFESSOR":
+            navigate("/professor/dashboard", { replace: true })
+            break
+          case "STUDENT":
+            navigate("/student/dashboard", { replace: true })
+            break
+          default:
+            setError("Rôle utilisateur non reconnu.")
+        }
       } else if (result.requiresPasswordChange) {
-        // Redirect to change password page
         navigate("/change-password", {
           state: { from: location.state?.from || { pathname: from } },
           replace: true,
@@ -69,6 +82,7 @@ function LoginPage() {
       setIsSubmitting(false)
     }
   }
+  
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword)

@@ -1,402 +1,446 @@
-  "use client"
+"use client"
 
-  import { useState } from "react"
-  import { motion } from "framer-motion"
-  import { Save, User, Mail, Lock, Globe, Bell, Shield } from "lucide-react"
-  import AdminLayout from "../../components/admin/AdminLayout"
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
+import { Save, User, Mail, Lock, Globe, Bell, Shield } from "lucide-react"
+import AdminLayout from "../../components/admin/AdminLayout"
+import {useAuth} from "../../hooks/useAuth"
 
-  function SettingsPage() {
-    const [activeTab, setActiveTab] = useState("profile")
-    const [profileForm, setProfileForm] = useState({
-      firstName: "Jean",
-      lastName: "Dupont",
-      email: "jean.dupont@universite.fr",
-      title: "Administrateur",
-      bio: "Administrateur système de l'Université de France avec plus de 10 ans d'expérience dans la gestion des systèmes d'information universitaires.",
-    })
+function SettingsPage() {
+  const { user, updateUser } = useAuth() // Get current user from auth context
+  const [activeTab, setActiveTab] = useState("profile")
+  const [profileForm, setProfileForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    title: "",
+  })
 
-    const [securityForm, setSecurityForm] = useState({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    })
+  const [securityForm, setSecurityForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  })
 
-    const [notificationSettings, setNotificationSettings] = useState({
-      emailNotifications: true,
-      smsNotifications: false,
-      newsUpdates: true,
-      accountActivity: true,
-      marketingEmails: false,
-    })
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
 
-    const handleProfileChange = (e) => {
-      const { name, value } = e.target
-      setProfileForm((prev) => ({
-        ...prev,
-        [name]: value,
-      }))
+  // Get current user data on component mount
+  useEffect(() => {
+    const loadUserData = () => {
+      const getCurrentUser = () => {
+        const userStr = localStorage.getItem("user")
+        return userStr ? JSON.parse(userStr) : null
+      }
+      
+      const currentUser = getCurrentUser()
+      if (currentUser) {
+        // Split fullName into firstName and lastName
+        const nameParts = currentUser.fullName ? currentUser.fullName.split(' ') : ['', '']
+        const firstName = nameParts[0] || ""
+        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ""
+        
+        setProfileForm({
+          firstName,
+          lastName,
+          email: currentUser.email || "",
+          title: currentUser.role || "Administrateur", // Using role as title
+          bio: currentUser.bio || "",
+          avatar: currentUser.avatar || "",
+        })
+        
+        // Set notification settings if they exist in user data
+        if (currentUser.notificationSettings) {
+          setNotificationSettings(currentUser.notificationSettings)
+        }
+      }
+      setIsLoading(false)
     }
+  
+    loadUserData()
+  }, [])
 
-    const handleSecurityChange = (e) => {
-      const { name, value } = e.target
-      setSecurityForm((prev) => ({
-        ...prev,
-        [name]: value,
-      }))
+  const handleProfileChange = (e) => {
+    const { name, value } = e.target
+    setProfileForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  const handleSecurityChange = (e) => {
+    const { name, value } = e.target
+    setSecurityForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  const handleProfileSubmit = async (e) => {
+    e.preventDefault()
+    setError("")
+    setSuccess("")
+    
+    try {
+      if (!user?.id) throw new Error("User not authenticated")
+      
+      // Prepare data for API
+      const userData = {
+        fullName: `${profileForm.firstName} ${profileForm.lastName}`.trim(),
+        email: profileForm.email,
+        role: profileForm.title,
+      }
+
+      const updatedUser = await adminUserService.updateUser(user.id, userData)
+      updateUser(updatedUser) // Update user in auth context
+      setSuccess("Profile updated successfully!")
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to update profile")
+      console.error(err)
     }
+  }
 
-    const handleNotificationChange = (e) => {
-      const { name, checked } = e.target
-      setNotificationSettings((prev) => ({
-        ...prev,
-        [name]: checked,
-      }))
-    }
+  const handleSecuritySubmit = async (e) => {
+    e.preventDefault()
+    setError("")
+    setSuccess("")
+    
+    try {
+      if (!user?.id) throw new Error("User not authenticated")
+      
+      if (securityForm.newPassword !== securityForm.confirmPassword) {
+        throw new Error("New passwords don't match")
+      }
 
-    const handleProfileSubmit = (e) => {
-      e.preventDefault()
-      // Logique pour sauvegarder les modifications du profil
-      console.log("Profile form submitted:", profileForm)
-      // Afficher une notification de succès
-    }
+      if (securityForm.newPassword.length < 8) {
+        throw new Error("Password must be at least 8 characters")
+      }
 
-    const handleSecuritySubmit = (e) => {
-      e.preventDefault()
-      // Logique pour changer le mot de passe
-      console.log("Security form submitted:", securityForm)
-      // Réinitialiser le formulaire après soumission
+      await adminUserService.adminChangePassword(
+        user.id, 
+        securityForm.newPassword
+      )
+      
+      setSuccess("Password updated successfully!")
       setSecurityForm({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       })
-      // Afficher une notification de succès
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || "Failed to update password")
+      console.error(err)
     }
+  }
 
-    const handleNotificationSubmit = (e) => {
-      e.preventDefault()
-      // Logique pour sauvegarder les paramètres de notification
-      console.log("Notification settings submitted:", notificationSettings)
-      // Afficher une notification de succès
-    }
+  const tabs = [
+    { id: "profile", label: "Profil", icon: <User className="h-5 w-5" /> },
+    { id: "security", label: "Sécurité", icon: <Lock className="h-5 w-5" /> },
+  ]
 
-    const tabs = [
-      { id: "profile", label: "Profil", icon: <User className="h-5 w-5" /> },
-      { id: "security", label: "Sécurité", icon: <Lock className="h-5 w-5" /> },
-    ]
-
+  if (isLoading) {
     return (
       <AdminLayout>
         <div className="px-4 py-6 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Paramètres</h1>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Gérez vos préférences et paramètres de compte</p>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-            <div className="sm:flex sm:divide-x sm:divide-gray-200 dark:sm:divide-gray-700">
-              {/* Sidebar de navigation */}
-              <aside className="py-6 sm:w-64 sm:flex-shrink-0 border-b border-gray-200 dark:border-gray-700 sm:border-b-0">
-                <nav className="px-4 sm:px-6 space-y-1">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md w-full ${
-                        activeTab === tab.id
-                          ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200"
-                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                      }`}
-                    >
-                      <span
-                        className={`mr-3 ${
-                          activeTab === tab.id
-                            ? "text-blue-500 dark:text-blue-400"
-                            : "text-gray-500 dark:text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300"
-                        }`}
-                      >
-                        {tab.icon}
-                      </span>
-                      {tab.label}
-                    </button>
-                  ))}
-                </nav>
-              </aside>
-
-              {/* Contenu principal */}
-              <div className="flex-1 p-6">
-                {/* Onglet Profil */}
-                {activeTab === "profile" && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-                          Informations du Profil
-                        </h3>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                          Ces informations seront affichées publiquement, alors soyez prudent avec ce que vous partagez.
-                        </p>
-                      </div>
-
-                      <form onSubmit={handleProfileSubmit} className="space-y-6">
-                        <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                          <div className="sm:col-span-3">
-                            <label
-                              htmlFor="firstName"
-                              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                            >
-                              Prénom
-                            </label>
-                            <div className="mt-1">
-                              <input
-                                type="text"
-                                name="firstName"
-                                id="firstName"
-                                value={profileForm.firstName}
-                                onChange={handleProfileChange}
-                                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="sm:col-span-3">
-                            <label
-                              htmlFor="lastName"
-                              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                            >
-                              Nom
-                            </label>
-                            <div className="mt-1">
-                              <input
-                                type="text"
-                                name="lastName"
-                                id="lastName"
-                                value={profileForm.lastName}
-                                onChange={handleProfileChange}
-                                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="sm:col-span-4">
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                              Adresse Email
-                            </label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
-                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Mail className="h-5 w-5 text-gray-400" />
-                              </div>
-                              <input
-                                type="email"
-                                name="email"
-                                id="email"
-                                value={profileForm.email}
-                                onChange={handleProfileChange}
-                                className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="sm:col-span-3">
-                            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                              Titre
-                            </label>
-                            <div className="mt-1">
-                              <input
-                                type="text"
-                                name="title"
-                                id="title"
-                                value={profileForm.title}
-                                onChange={handleProfileChange}
-                                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="sm:col-span-6">
-                            <label htmlFor="bio" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                              Bio
-                            </label>
-                            <div className="mt-1">
-                              <textarea
-                                id="bio"
-                                name="bio"
-                                rows="3"
-                                value={profileForm.bio}
-                                onChange={handleProfileChange}
-                                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
-                              ></textarea>
-                            </div>
-                            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                              Brève description de votre profil. Les URLs sont mises en lien automatiquement.
-                            </p>
-                          </div>
-
-                          <div className="sm:col-span-6">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                              Photo de profil
-                            </label>
-                            <div className="mt-2 flex items-center">
-                              <span className="h-12 w-12 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700">
-                                <svg
-                                  className="h-full w-full text-gray-300 dark:text-gray-600"
-                                  fill="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                                </svg>
-                              </span>
-                              <button
-                                type="button"
-                                className="ml-5 bg-white dark:bg-gray-800 py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                              >
-                                Changer
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex justify-end">
-                          <button
-                            type="button"
-                            className="bg-white dark:bg-gray-800 py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                          >
-                            Annuler
-                          </button>
-                          <button
-                            type="submit"
-                            className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                          >
-                            <Save className="h-4 w-4 mr-2" />
-                            Enregistrer
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* Onglet Sécurité */}
-                {activeTab === "security" && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-                          Sécurité du Compte
-                        </h3>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                          Mettez à jour votre mot de passe et gérez les paramètres de sécurité de votre compte.
-                        </p>
-                      </div>
-
-                      <form onSubmit={handleSecuritySubmit} className="space-y-6">
-                        <div className="space-y-4">
-                          <div>
-                            <label
-                              htmlFor="currentPassword"
-                              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                            >
-                              Mot de passe actuel
-                            </label>
-                            <div className="mt-1">
-                              <input
-                                id="currentPassword"
-                                name="currentPassword"
-                                type="password"
-                                autoComplete="current-password"
-                                required
-                                value={securityForm.currentPassword}
-                                onChange={handleSecurityChange}
-                                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
-                              />
-                            </div>
-                          </div>
-
-                          <div>
-                            <label
-                              htmlFor="newPassword"
-                              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                            >
-                              Nouveau mot de passe
-                            </label>
-                            <div className="mt-1">
-                              <input
-                                id="newPassword"
-                                name="newPassword"
-                                type="password"
-                                autoComplete="new-password"
-                                required
-                                value={securityForm.newPassword}
-                                onChange={handleSecurityChange}
-                                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
-                              />
-                            </div>
-                          </div>
-
-                          <div>
-                            <label
-                              htmlFor="confirmPassword"
-                              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                            >
-                              Confirmer le nouveau mot de passe
-                            </label>
-                            <div className="mt-1">
-                              <input
-                                id="confirmPassword"
-                                name="confirmPassword"
-                                type="password"
-                                autoComplete="new-password"
-                                required
-                                value={securityForm.confirmPassword}
-                                onChange={handleSecurityChange}
-                                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex justify-end">
-                          <button
-                            type="button"
-                            className="bg-white dark:bg-gray-800 py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                          >
-                            Annuler
-                          </button>
-                          <button
-                            type="submit"
-                            className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                          >
-                            Mettre à jour le mot de passe
-                          </button>
-                        </div>
-                      </form>
-
-                      <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-                        <h4 className="text-md font-medium text-gray-900 dark:text-white">
-                          Authentification à deux facteurs
-                        </h4>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                          Ajoutez une couche de sécurité supplémentaire à votre compte.
-                        </p>
-                        <div className="mt-4">
-                          <button
-                            type="button"
-                            className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                          >
-                            Configurer l'authentification à deux facteurs
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </div>
-            </div>
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         </div>
       </AdminLayout>
     )
   }
 
-  export default SettingsPage
+  return (
+    <AdminLayout>
+      <div className="px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Paramètres</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Gérez vos préférences et paramètres de compte
+          </p>
+        </div>
 
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-md">
+            {success}
+          </div>
+        )}
+
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+          <div className="sm:flex sm:divide-x sm:divide-gray-200 dark:sm:divide-gray-700">
+            {/* Sidebar navigation */}
+            <aside className="py-6 sm:w-64 sm:flex-shrink-0 border-b border-gray-200 dark:border-gray-700 sm:border-b-0">
+              <div className="px-4 sm:px-6 mb-6 flex items-center space-x-3">
+                <div className="h-12 w-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                  <User className="h-6 w-6 text-gray-400" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-900 dark:text-white">
+                    {profileForm.firstName} {profileForm.lastName}
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {profileForm.title}
+                  </p>
+                </div>
+              </div>
+              
+              <nav className="px-4 sm:px-6 space-y-1">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      setActiveTab(tab.id)
+                      setError("")
+                      setSuccess("")
+                    }}
+                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md w-full ${
+                      activeTab === tab.id
+                        ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    <span
+                      className={`mr-3 ${
+                        activeTab === tab.id
+                          ? "text-blue-500 dark:text-blue-400"
+                          : "text-gray-500 dark:text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300"
+                      }`}
+                    >
+                      {tab.icon}
+                    </span>
+                    {tab.label}
+                  </button>
+                ))}
+              </nav>
+            </aside>
+
+            {/* Main content */}
+            <div className="flex-1 p-6">
+              {/* Profile Tab */}
+              {activeTab === "profile" && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+                        Informations du Profil
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Ces informations seront affichées publiquement.
+                      </p>
+                    </div>
+
+                    <form onSubmit={handleProfileSubmit} className="space-y-6">
+                      <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                        <div className="sm:col-span-3">
+                          <label
+                            htmlFor="firstName"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            Prénom
+                          </label>
+                          <div className="mt-1">
+                            <input
+                              type="text"
+                              name="firstName"
+                              id="firstName"
+                              value={profileForm.firstName}
+                              onChange={handleProfileChange}
+                              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label
+                            htmlFor="lastName"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            Nom
+                          </label>
+                          <div className="mt-1">
+                            <input
+                              type="text"
+                              name="lastName"
+                              id="lastName"
+                              value={profileForm.lastName}
+                              onChange={handleProfileChange}
+                              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="sm:col-span-4">
+                          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Adresse Email
+                          </label>
+                          <div className="mt-1 relative rounded-md shadow-sm">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <Mail className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <input
+                              type="email"
+                              name="email"
+                              id="email"
+                              value={profileForm.email}
+                              onChange={handleProfileChange}
+                              className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Titre
+                          </label>
+                          <div className="mt-1">
+                            <input
+                              type="text"
+                              name="title"
+                              id="title"
+                              value={profileForm.title}
+                              onChange={handleProfileChange}
+                              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Reset form to original values
+                            const nameParts = user.fullName.split(' ')
+                            setProfileForm({
+                              firstName: nameParts[0],
+                              lastName: nameParts.slice(1).join(' '),
+                              email: user.email,
+                              title: user.role,
+                            })
+                            setError("")
+                            setSuccess("")
+                          }}
+                          className="bg-white dark:bg-gray-800 py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          Annuler
+                        </button>
+                        <button
+                          type="submit"
+                          className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          <Save className="h-4 w-4 mr-2" />
+                          Enregistrer
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Security Tab */}
+              {activeTab === "security" && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+                        Sécurité du Compte
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Mettez à jour votre mot de passe.
+                      </p>
+                    </div>
+
+                    <form onSubmit={handleSecuritySubmit} className="space-y-6">
+                      <div className="space-y-4">
+                        <div>
+                          <label
+                            htmlFor="newPassword"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            Nouveau mot de passe
+                          </label>
+                          <div className="mt-1">
+                            <input
+                              id="newPassword"
+                              name="newPassword"
+                              type="password"
+                              autoComplete="new-password"
+                              required
+                              value={securityForm.newPassword}
+                              onChange={handleSecurityChange}
+                              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
+                            />
+                          </div>
+                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Le mot de passe doit contenir au moins 8 caractères.
+                          </p>
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="confirmPassword"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            Confirmer le nouveau mot de passe
+                          </label>
+                          <div className="mt-1">
+                            <input
+                              id="confirmPassword"
+                              name="confirmPassword"
+                              type="password"
+                              autoComplete="new-password"
+                              required
+                              value={securityForm.confirmPassword}
+                              onChange={handleSecurityChange}
+                              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSecurityForm({
+                              currentPassword: "",
+                              newPassword: "",
+                              confirmPassword: "",
+                            })
+                            setError("")
+                            setSuccess("")
+                          }}
+                          className="bg-white dark:bg-gray-800 py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          Annuler
+                        </button>
+                        <button
+                          type="submit"
+                          className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          Mettre à jour le mot de passe
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </AdminLayout>
+  )
+}
+
+export default SettingsPage

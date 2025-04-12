@@ -57,10 +57,15 @@ function AdminLayout({ children }) {
       name: "Administrateurs",
       href: "/admin/admins",
       icon: <UserCog className="h-5 w-5" />,
-    },
+    },    
     {
       name: "Classes",
       href: "/admin/classes",
+      icon: <BookOpen className="h-5 w-5" />,
+    },
+    {
+      name: "Modules",
+      href: "/admin/module",
       icon: <BookOpen className="h-5 w-5" />,
     },
     {

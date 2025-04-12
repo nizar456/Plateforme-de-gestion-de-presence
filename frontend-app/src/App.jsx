@@ -19,14 +19,15 @@ import ClassesPage from "./pages/admin/ClassesPage"
 import SettingsPage from "./pages/admin/SettingsPage"
 import AdminsPage from "./pages/admin/AdminsPage"
 import ProfessorsPage from "./pages/admin/ProfessorsPage"
+import ModulePage from "./pages/admin/ModulePage"
 
 // Professor pages (placeholders - you'll need to create these)
 import ProfessorDashboardPage from "./pages/professor/ProfessorDashboardPage"
-// import ProfessorCoursesPage from "./pages/professor/ProfessorCoursesPage"
-// import ProfessorStudentsPage from "./pages/professor/ProfessorStudentsPage"
+import ProfessorCoursesPage from "./pages/professor/ProfessorCoursesPage"
+import ProfessorStudentsPage from "./pages/professor/ProfessorStudentsPage"
 
 // Student pages (placeholders - you'll need to create these)
-// import StudentDashboardPage from "./pages/student/StudentDashboardPage"
+import StudentDashboardPage from "./pages/student/StudentDashboardPage"
 // import StudentCoursesPage from "./pages/student/StudentCoursesPage"
 // import StudentGradesPage from "./pages/student/StudentGradesPage"
 
@@ -95,6 +96,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/module"
+          element={
+            <ProtectedRoute requiredRole="ADMIN">
+              <ModulePage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Routes pour les professeurs */}
         <Route
@@ -105,7 +114,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* <Route
+        <Route
           path="/professor/courses"
           element={
             <ProtectedRoute requiredRole="PROFESSOR">
@@ -120,11 +129,11 @@ function App() {
               <ProfessorStudentsPage />
             </ProtectedRoute>
           }
-        /> */}
+        />
         {/* Add more professor routes as needed */}
 
         {/* Routes pour les étudiants */}
-        {/* <Route
+        <Route
           path="/student/dashboard"
           element={
             <ProtectedRoute requiredRole="STUDENT">
@@ -132,23 +141,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/student/courses"
-          element={
-            <ProtectedRoute requiredRole="STUDENT">
-              <StudentCoursesPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/grades"
-          element={
-            <ProtectedRoute requiredRole="STUDENT">
-              <StudentGradesPage />
-            </ProtectedRoute>
-          }
-        /> */}
-        {/* Add more student routes as needed */}
       </Routes>
     </AuthProvider>
   )
