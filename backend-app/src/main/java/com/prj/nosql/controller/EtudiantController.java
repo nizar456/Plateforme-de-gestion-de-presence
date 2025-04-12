@@ -16,20 +16,16 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/etudiant")
-public class EtudiantController {
-
-
+public class  EtudiantController {
     @Autowired
     private AbsenceService absenceService;
     @Autowired
     private AuthService authService;
-
     @GetMapping("/absences")
     public ResponseEntity<List<AbsenceEtudiantDto>> voirMesAbsences(Authentication auth) {
         User etudiant = (User) auth.getPrincipal();
         return ResponseEntity.ok(absenceService.getAbsencesByEtudiant(etudiant.getId()));
     }
-
     @PutMapping("/absences/{absenceId}/justification")
     public ResponseEntity<String> ajouterJustification(
             @PathVariable String absenceId,
@@ -56,7 +52,6 @@ public class EtudiantController {
 
         return ResponseEntity.ok(response);
     }
-
     // 🆕 Put pour mettre à jour les infos
     @PutMapping("/edit-profile")
     public ResponseEntity<String> updateProfile(@RequestBody UpdateUserRequest request, Authentication auth) {

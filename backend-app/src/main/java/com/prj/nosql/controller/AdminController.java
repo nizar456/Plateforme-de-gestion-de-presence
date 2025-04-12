@@ -2,6 +2,7 @@ package com.prj.nosql.controller;
 
 
 import com.prj.nosql.dto.CreateUserRequest;
+import com.prj.nosql.dto.NewPasswordRequest;
 import com.prj.nosql.dto.UpdateUserRequest;
 import com.prj.nosql.dto.UserResponse;
 import com.prj.nosql.model.UserRole;
@@ -112,8 +113,8 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}/change-password")
-    public ResponseEntity<?> adminChangePassword(@PathVariable String id, @RequestBody String newPassword) {
-        authService.adminChangePassword(id, newPassword);
+    public ResponseEntity<?> adminChangePassword(@PathVariable String id, @RequestBody NewPasswordRequest request) {
+        authService.adminChangePassword(id, request);
         return ResponseEntity.ok().build();
     }
 }
