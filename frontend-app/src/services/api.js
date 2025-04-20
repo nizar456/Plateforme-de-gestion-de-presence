@@ -226,13 +226,43 @@ const adminService = {
 
 // Classe Service (keeping original method names)
 const classeService = {
+  // Récupérer toutes les classes
   getAllClasses: async () => (await api.get("/admin/classes")).data,
+
+  // Récupérer une classe par ID
   getClasseById: async (id) => (await api.get(`/admin/classes/${id}`)).data,
+
+  // Créer une nouvelle classe
   createClasse: async (classeData) => (await api.post("/admin/classes", classeData)).data,
+
+  // Mettre à jour une classe existante
   updateClasse: async (id, classeData) => (await api.put(`/admin/classes/${id}`, classeData)).data,
+
+  // Supprimer une classe
   deleteClasse: async (id) => (await api.delete(`/admin/classes/${id}`)).data,
-  affecterEtudiant: async (data) => (await api.post(`/admin/classes/affecter-etudiant`, data)).data,
+
+  // Affecter un étudiant à une classe
+  affecterEtudiant: async (classId, studentId) => {
+    const data = {
+      classeId: classId,
+      etudiantId: studentId,
+    };
+    return (await api.post(`/admin/classes/${classId}/affecter-etudiant`, data)).data;
+  },
+
+  // Obtenir tous les étudiants sans classe
+  getEtudiantsSansClasse: async (id) => (await api.get(`/admin/classes/${id}/affecter-etudiant`)).data,
+  
+  getEtudiantsParClasse: async (classId) => {
+    return (await api.get(`/admin/classes/${classId}/etudiants`)).data;
+  },
+
+  // Supprimer un étudiant d'une classe
+  supprimerEtudiantDeClasse: async (classId, studentId) => {
+    return (await api.delete(`/admin/classes/${classId}/etudiants/${studentId}`)).data;
+  }
 };
+
 
 // Dashboard Service (keeping original method names)
 const dashboardService = {

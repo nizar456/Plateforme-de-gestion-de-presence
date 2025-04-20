@@ -16,12 +16,15 @@ import AdminLayout from "../../components/admin/AdminLayout";
 import { classeService } from "../../services/api";
 import AddClassModal from "../../components/admin/AddClassModal";
 import EditClassModal from "../../components/admin/EditClassModal";
+import ClassStudentsModal from "../../components/admin/ClassStudentsModal";
+import AddStudentToClassModal from "../../components/admin/AddStudentToClassModal"; 
 
 function ClassesPage() {
   // State management
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedClasses, setSelectedClasses] = useState([]);
+  const [selectedClasse, setSelectedClasse] = useState(null);
   const [sortConfig, setSortConfig] = useState({
     key: "nom",
     direction: "ascending",
@@ -36,6 +39,9 @@ function ClassesPage() {
     nom: "",
     niveau: "PREMIERE_ANNEE",
   });
+  const [isStudentsModalOpen, setIsStudentsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedClassId, setSelectedClassId] = useState(null);
 
   // Fetch classes from API
   useEffect(() => {
@@ -54,6 +60,11 @@ function ClassesPage() {
 
     fetchClasses();
   }, []);
+
+  const refreshClasses = async () => {
+    const classesData = await classeService.getAllClasses(); // Fetch updated classes data
+    setClasses(classesData);
+  };
 
   // Map backend data to match frontend structure
   const mappedClasses = classes.map((classe) => ({
@@ -87,7 +98,10 @@ function ClassesPage() {
   const classesPerPage = 5;
   const indexOfLastClass = currentPage * classesPerPage;
   const indexOfFirstClass = indexOfLastClass - classesPerPage;
-  const currentClasses = sortedClasses.slice(indexOfFirstClass, indexOfLastClass);
+  const currentClasses = sortedClasses.slice(
+    indexOfFirstClass,
+    indexOfLastClass
+  );
   const totalPages = Math.ceil(sortedClasses.length / classesPerPage);
 
   // Handle sorting
@@ -128,16 +142,9 @@ function ClassesPage() {
   };
 
   // Handle add student to class
-  const handleAddStudent = async (classId) => {
-    try {
-      const studentData = {};
-      await classeService.affecterEtudiant({ classId, ...studentData });
-      const updatedClasses = await classeService.getAllClasses();
-      setClasses(updatedClasses);
-    } catch (err) {
-      setError("Failed to add student to class");
-      console.error(err);
-    }
+  const handleAddStudent = (id) => {
+    setSelectedClassId(id);
+    setIsAddModalOpen(true);
   };
 
   // Handle view students
@@ -253,7 +260,6 @@ function ClassesPage() {
             </button>
           </div>
         </div>
-
         {/* Search and Filter */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 sm:space-x-4 mb-6">
           <div className="relative flex-1 max-w-md">
@@ -278,7 +284,6 @@ function ClassesPage() {
             </button>
           </div>
         </div>
-
         {/* Classes Table */}
         <motion.div
           className="bg-white dark:bg-gray-800 shadow-lg overflow-hidden rounded-xl mb-6"
@@ -397,7 +402,10 @@ function ClassesPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-3">
                         <button
-                          onClick={() => handleViewStudents(classe.id)}
+                          onClick={() => {
+                            setSelectedClasse(classe);
+                            setIsStudentsModalOpen(true);
+                          }}
                           className="p-1.5 rounded-full text-blue-600 hover:text-white hover:bg-blue-600 dark:text-blue-400 dark:hover:bg-blue-600 transition-colors"
                           title="Voir les étudiants"
                         >
@@ -432,7 +440,6 @@ function ClassesPage() {
             </table>
           </div>
         </motion.div>
-
         {/* Pagination */}
         <div className="flex items-center justify-between">
           <div className="flex-1 flex justify-between sm:hidden">
@@ -524,7 +531,6 @@ function ClassesPage() {
             </div>
           </div>
         </div>
-
         {/* Render the modals */}
         <AddClassModal
           isOpen={isAddClassModalOpen}
@@ -533,7 +539,6 @@ function ClassesPage() {
           isLoading={isLoading}
           initialForm={newClassForm}
         />
-
         {isEditModalOpen && (
           <EditClassModal
             isOpen={isEditModalOpen}
@@ -543,6 +548,20 @@ function ClassesPage() {
             classe={currentClass}
           />
         )}
+        {isStudentsModalOpen && (
+          <ClassStudentsModal
+            isOpen={isStudentsModalOpen}
+            onClose={() => setIsStudentsModalOpen(false)}
+            classe={selectedClasse}
+          />
+        )}
+        <AddStudentToClassModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          classId={selectedClassId}
+          onStudentAdded={refreshClasses}
+        />
+        ;
       </div>
     </AdminLayout>
   );

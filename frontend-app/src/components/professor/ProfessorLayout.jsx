@@ -35,7 +35,7 @@ function ProfessorLayout({ children }) {
   // Navigation links specific to professors
   const navigation = [
     { name: "Tableau de Bord", href: "/professor/dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
-    { name: "Mes Cours", href: "/professor/courses", icon: <BookOpen className="h-5 w-5" /> },
+    { name: "Mes Modules", href: "/professor/modules", icon: <BookOpen className="h-5 w-5" /> },
     { name: "Mes Étudiants", href: "/professor/students", icon: <Users className="h-5 w-5" /> },
     { name: "Emploi du Temps", href: "/professor/schedule", icon: <Calendar className="h-5 w-5" /> },
     { name: "Documents", href: "/professor/documents", icon: <FileText className="h-5 w-5" /> },
