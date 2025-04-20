@@ -56,4 +56,21 @@ public class ClasseController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(response);
     }
+    // GET : Liste des étudiants d'une classe spécifique
+    @GetMapping("/{id}/etudiants")
+    public ResponseEntity<List<SimpleUserResponse>> getEtudiantsParClasse(@PathVariable String id) {
+        List<User> etudiants = classeService.getEtudiantsParClasse(id);
+        List<SimpleUserResponse> response = etudiants.stream()
+                .map(user -> new SimpleUserResponse(user.getId(), user.getFullName(), user.getEmail()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
+
+    // DELETE : Supprimer un étudiant d'une classe
+    @DeleteMapping("/{id}/etudiants/{etudiantId}")
+    public ResponseEntity<ClasseResponse> supprimerEtudiantDeClasse(@PathVariable String id, @PathVariable String etudiantId) {
+        ClasseResponse updatedClasse = classeService.supprimerEtudiantDeClasse(id, etudiantId);
+        return ResponseEntity.ok(updatedClasse);
+    }
+
 }

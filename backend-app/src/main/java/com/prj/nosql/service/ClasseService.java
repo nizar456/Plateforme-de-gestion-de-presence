@@ -88,6 +88,19 @@ public class ClasseService {
                 .filter(etudiant -> !etudiantAffectes.contains(etudiant.getId()))
                 .collect(Collectors.toList());
     }
+    public List<User> getEtudiantsParClasse(String classeId) {
+        Classe classe = classeRepository.findById(classeId)
+                .orElseThrow(() -> new RuntimeException("Classe non trouvée"));
+        return userRepository.findAllById(classe.getEtudiantIds());
+    }
+
+    public ClasseResponse supprimerEtudiantDeClasse(String classeId, String etudiantId) {
+        Classe classe = classeRepository.findById(classeId)
+                .orElseThrow(() -> new RuntimeException("Classe non trouvée"));
+        classe.getEtudiantIds().remove(etudiantId);
+        classeRepository.save(classe);
+        return convertToResponse(classe);
+    }
 
     private ClasseResponse convertToResponse(Classe classe) {
         ClasseResponse response = new ClasseResponse();
