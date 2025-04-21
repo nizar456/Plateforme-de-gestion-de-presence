@@ -23,7 +23,8 @@ import ModulePage from "./pages/admin/ModulePage"
 
 // Professor pages (placeholders - you'll need to create these)
 import ProfessorDashboardPage from "./pages/professor/ProfessorDashboardPage"
-import ProfessorCoursesPage from "./pages/professor/ProfessorCoursesPage"
+import ProfessorModulesPage from "./pages/professor/ProfessorModulesPage";
+import ProfessorAttendancePage from './pages/professor/ProfessorAttendancePage'
 import ProfessorStudentsPage from "./pages/professor/ProfessorStudentsPage"
 
 // Student pages (placeholders - you'll need to create these)
@@ -115,10 +116,18 @@ function App() {
           }
         />
         <Route
-          path="/professor/courses"
+          path="/professor/modules"
           element={
             <ProtectedRoute requiredRole="PROFESSOR">
-              <ProfessorCoursesPage />
+              <ProfessorModulesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/professor/modules/:moduleId/attendance"
+          element={
+            <ProtectedRoute requiredRole="PROFESSOR">
+              <ProfessorAttendancePage />
             </ProtectedRoute>
           }
         />

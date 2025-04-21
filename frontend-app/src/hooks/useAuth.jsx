@@ -10,6 +10,24 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  // Add the updateUser function
+  const updateUser = (updatedUserData) => {
+    try {
+      // Update in local state
+      setUser(prev => ({ ...prev, ...updatedUserData }))
+      
+      // Update in localStorage if persisting there
+      const currentUser = authService.getCurrentUser()
+      const mergedUser = { ...currentUser, ...updatedUserData }
+      localStorage.setItem("user", JSON.stringify(mergedUser))
+      
+      return mergedUser
+    } catch (err) {
+      console.error("Failed to update user:", err)
+      throw err
+    }
+  }
+
   useEffect(() => {
     const initAuth = () => {
       try {
@@ -129,6 +147,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     changePassword,
+    updateUser, // Added this function
     isAuthenticated: !!user,
     hasRole,
     isAdmin,

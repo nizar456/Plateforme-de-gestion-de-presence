@@ -2,68 +2,60 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Save, User, Mail, Lock, Globe, Bell, Shield } from "lucide-react"
+import { Save, User, Mail, Lock } from "lucide-react"
 import AdminLayout from "../../components/admin/AdminLayout"
-import {useAuth} from "../../hooks/useAuth"
+import { useAuth } from "../../hooks/useAuth"
+import { useNavigate } from "react-router-dom"
+import { adminUserService } from "../../services/api"
 
 function SettingsPage() {
-  const { user, updateUser } = useAuth() // Get current user from auth context
+  const { user: currentUser, updateUser } = useAuth()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState("profile")
   const [profileForm, setProfileForm] = useState({
-    firstName: "",
-    lastName: "",
+    prenom: "",
+    nom: "",
     email: "",
-    title: "",
   })
-
   const [securityForm, setSecurityForm] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   })
-
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
 
-  // Get current user data on component mount
   useEffect(() => {
-    const loadUserData = () => {
-      const getCurrentUser = () => {
-        const userStr = localStorage.getItem("user")
-        return userStr ? JSON.parse(userStr) : null
-      }
-      
-      const currentUser = getCurrentUser()
-      if (currentUser) {
-        // Split fullName into firstName and lastName
-        const nameParts = currentUser.fullName ? currentUser.fullName.split(' ') : ['', '']
-        const firstName = nameParts[0] || ""
-        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ""
+    const loadUserData = async () => {
+      try {
+        if (!currentUser?.id) {
+          throw new Error("User not authenticated")
+        }
+        
+        // Fetch the latest user data from API
+        const userData = await adminUserService.getUserById(currentUser.id)
         
         setProfileForm({
-          firstName,
-          lastName,
-          email: currentUser.email || "",
-          title: currentUser.role || "Administrateur", // Using role as title
-          bio: currentUser.bio || "",
-          avatar: currentUser.avatar || "",
+          prenom: userData.prenom || "",
+          nom: userData.nom || "",
+          email: userData.email || "",
         })
         
-        // Set notification settings if they exist in user data
-        if (currentUser.notificationSettings) {
-          setNotificationSettings(currentUser.notificationSettings)
-        }
+        setIsLoading(false)
+      } catch (err) {
+        console.error("Failed to load user data:", err)
+        setError(err.message || "Failed to load user data")
+        setIsLoading(false)
       }
-      setIsLoading(false)
     }
-  
+    
     loadUserData()
-  }, [])
+  }, [currentUser])
 
   const handleProfileChange = (e) => {
     const { name, value } = e.target
-    setProfileForm((prev) => ({
+    setProfileForm(prev => ({
       ...prev,
       [name]: value,
     }))
@@ -71,7 +63,7 @@ function SettingsPage() {
 
   const handleSecurityChange = (e) => {
     const { name, value } = e.target
-    setSecurityForm((prev) => ({
+    setSecurityForm(prev => ({
       ...prev,
       [name]: value,
     }))
@@ -83,21 +75,30 @@ function SettingsPage() {
     setSuccess("")
     
     try {
-      if (!user?.id) throw new Error("User not authenticated")
+      if (!currentUser?.id) {
+        throw new Error("Session expired. Please log in again.")
+      }
       
-      // Prepare data for API
       const userData = {
-        fullName: `${profileForm.firstName} ${profileForm.lastName}`.trim(),
+        prenom: profileForm.prenom,
+        nom: profileForm.nom,
         email: profileForm.email,
-        role: profileForm.title,
       }
 
-      const updatedUser = await adminUserService.updateUser(user.id, userData)
-      updateUser(updatedUser) // Update user in auth context
+      // Update via API
+      const updatedUser = await adminUserService.updateUser(currentUser.id, userData)
+      
+      // Update local auth state
+      await updateUser(updatedUser)
+      
       setSuccess("Profile updated successfully!")
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to update profile")
-      console.error(err)
+      setError(err.response?.data?.message || err.message || "Failed to update profile")
+      console.error("Profile update error:", err)
+      
+      if (err.message.includes("Session expired")) {
+        navigate("/connexion")
+      }
     }
   }
 
@@ -107,7 +108,7 @@ function SettingsPage() {
     setSuccess("")
     
     try {
-      if (!user?.id) throw new Error("User not authenticated")
+      if (!currentUser?.id) throw new Error("User not authenticated")
       
       if (securityForm.newPassword !== securityForm.confirmPassword) {
         throw new Error("New passwords don't match")
@@ -118,7 +119,7 @@ function SettingsPage() {
       }
 
       await adminUserService.adminChangePassword(
-        user.id, 
+        currentUser.id, 
         securityForm.newPassword
       )
       
@@ -174,7 +175,6 @@ function SettingsPage() {
 
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
           <div className="sm:flex sm:divide-x sm:divide-gray-200 dark:sm:divide-gray-700">
-            {/* Sidebar navigation */}
             <aside className="py-6 sm:w-64 sm:flex-shrink-0 border-b border-gray-200 dark:border-gray-700 sm:border-b-0">
               <div className="px-4 sm:px-6 mb-6 flex items-center space-x-3">
                 <div className="h-12 w-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
@@ -182,10 +182,10 @@ function SettingsPage() {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-white">
-                    {profileForm.firstName} {profileForm.lastName}
+                    {profileForm.prenom} {profileForm.nom}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {profileForm.title}
+                    {profileForm.role}
                   </p>
                 </div>
               </div>
@@ -220,9 +220,7 @@ function SettingsPage() {
               </nav>
             </aside>
 
-            {/* Main content */}
             <div className="flex-1 p-6">
-              {/* Profile Tab */}
               {activeTab === "profile" && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                   <div className="space-y-6">
@@ -239,7 +237,7 @@ function SettingsPage() {
                       <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                         <div className="sm:col-span-3">
                           <label
-                            htmlFor="firstName"
+                            htmlFor="prenom"
                             className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                           >
                             Prénom
@@ -247,9 +245,9 @@ function SettingsPage() {
                           <div className="mt-1">
                             <input
                               type="text"
-                              name="firstName"
-                              id="firstName"
-                              value={profileForm.firstName}
+                              name="prenom"
+                              id="prenom"
+                              value={profileForm.prenom}
                               onChange={handleProfileChange}
                               className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
                               required
@@ -259,7 +257,7 @@ function SettingsPage() {
 
                         <div className="sm:col-span-3">
                           <label
-                            htmlFor="lastName"
+                            htmlFor="nom"
                             className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                           >
                             Nom
@@ -267,9 +265,9 @@ function SettingsPage() {
                           <div className="mt-1">
                             <input
                               type="text"
-                              name="lastName"
-                              id="lastName"
-                              value={profileForm.lastName}
+                              name="nom"
+                              id="nom"
+                              value={profileForm.nom}
                               onChange={handleProfileChange}
                               className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
                               required
@@ -295,37 +293,19 @@ function SettingsPage() {
                               required
                             />
                           </div>
-                        </div>
-
-                        <div className="sm:col-span-3">
-                          <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Titre
-                          </label>
-                          <div className="mt-1">
-                            <input
-                              type="text"
-                              name="title"
-                              id="title"
-                              value={profileForm.title}
-                              onChange={handleProfileChange}
-                              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-white"
-                              required
-                            />
-                          </div>
-                        </div>
+                        </div>                 
                       </div>
 
                       <div className="flex justify-end">
                         <button
                           type="button"
                           onClick={() => {
-                            // Reset form to original values
-                            const nameParts = user.fullName.split(' ')
                             setProfileForm({
-                              firstName: nameParts[0],
-                              lastName: nameParts.slice(1).join(' '),
-                              email: user.email,
-                              title: user.role,
+                              prenom: currentUser.prenom || "",
+                              nom: currentUser.nom || "",
+                              email: currentUser.email || "",
+                              role: currentUser.role || "",
+                              username: currentUser.username || ""
                             })
                             setError("")
                             setSuccess("")
@@ -347,7 +327,6 @@ function SettingsPage() {
                 </motion.div>
               )}
 
-              {/* Security Tab */}
               {activeTab === "security" && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                   <div className="space-y-6">

@@ -41,30 +41,30 @@ function ModulePage() {
   // Fetch modules from API
   useEffect(() => {
     const fetchModules = async () => {
-        try {
-          setIsLoading(true);
-          const modulesData = await moduleService.getAllModules();
-          
-          // Check if the response is what you expect
-          if (!Array.isArray(modulesData)) {
-            throw new Error('Invalid response format');
-          }
-          
-          setModules(modulesData);
-          setError(null);
-        } catch (err) {
-          console.error('API Error:', err);
-          
-          // Check if this is an authentication error
-          if (err.message.includes('401') || err.message.includes('403')) {
-            setError('Authentication failed. Please login again.');
-          } else {
-            setError('Failed to fetch modules. Please try again later.');
-          }
-        } finally {
-          setIsLoading(false);
+      try {
+        setIsLoading(true);
+        const modulesData = await moduleService.getAllModules();
+
+        // Check if the response is what you expect
+        if (!Array.isArray(modulesData)) {
+          throw new Error("Invalid response format");
         }
-      };
+
+        setModules(modulesData);
+        setError(null);
+      } catch (err) {
+        console.error("API Error:", err);
+
+        // Check if this is an authentication error
+        if (err.message.includes("401") || err.message.includes("403")) {
+          setError("Authentication failed. Please login again.");
+        } else {
+          setError("Failed to fetch modules. Please try again later.");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
     fetchModules();
   }, []);
@@ -75,10 +75,12 @@ function ModulePage() {
     titre: module.titre,
     description: module.description,
     className: module.classe?.nom || "N/A",
-    professorName: module.professeur 
-      ? `${module.professeur.prenom} ${module.professeur.nom}` 
+    niveau : module.classe?.niveau || "N/A",
+    professorName: module.professeur
+      ? `${module.professeur.prenom} ${module.professeur.nom}`
       : "N/A",
   }));
+  console.log(modules);
 
   // Filter modules based on search term
   const filteredModules = mappedModules.filter(
@@ -104,7 +106,10 @@ function ModulePage() {
   const modulesPerPage = 5;
   const indexOfLastModule = currentPage * modulesPerPage;
   const indexOfFirstModule = indexOfLastModule - modulesPerPage;
-  const currentModules = sortedModules.slice(indexOfFirstModule, indexOfLastModule);
+  const currentModules = sortedModules.slice(
+    indexOfFirstModule,
+    indexOfLastModule
+  );
   const totalPages = Math.ceil(sortedModules.length / modulesPerPage);
 
   // Handle sorting
@@ -403,9 +408,10 @@ function ModulePage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-600 dark:text-gray-300">
-                        {module.className}
+                        {module.className} - {module.niveau}
                       </div>
                     </td>
+
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-600 dark:text-gray-300">
                         {module.professorName}
