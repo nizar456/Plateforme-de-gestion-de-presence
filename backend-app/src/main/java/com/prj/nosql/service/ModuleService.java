@@ -135,8 +135,18 @@ public class ModuleService {
 
         return response;
     }
-    public List<Module> getModulesByProfesseur(String professeurId) {
-        return moduleRepository.findByProfesseurId(professeurId);
+    public List<ModuleWithClasseResponse> getModulesWithClasseByProfesseur(String professeurId) {
+        List<Module> modules = moduleRepository.findByProfesseurId(professeurId);
+        return modules.stream().map(module -> {
+            Classe classe = classeRepository.findById(module.getClasseId())
+                    .orElse(null); // ou tu peux gérer le cas non trouvé avec exception si nécessaire
+            return new ModuleWithClasseResponse(
+                    module.getId(),
+                    module.getTitre(),
+                    module.getDescription(),
+                    classe
+            );
+        }).collect(Collectors.toList());
     }
     public ModuleCreationDataResponse getModuleCreationData() {
         List<ClasseDto> classes = classeRepository.findAll().stream()

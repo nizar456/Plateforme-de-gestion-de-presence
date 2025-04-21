@@ -69,11 +69,11 @@ public class ModuleController {
         return ResponseEntity.ok(moduleService.affecterModule(request));
     } */
     @GetMapping("/professor/modules")
-    public ResponseEntity<List<Module>> getModulesEnseignes(Authentication auth) {
+    public ResponseEntity<List<ModuleWithClasseResponse>> getModulesEnseignes(Authentication auth) {
         User principal = (User) auth.getPrincipal();
         // Cast vers votre classe User
         String professeurId = principal.getId();
-        return ResponseEntity.ok(moduleService.getModulesByProfesseur(professeurId));
+        return ResponseEntity.ok(moduleService.getModulesWithClasseByProfesseur(professeurId));
     }
     // hna bach idir lpresence
     @GetMapping("/professor/modules/{moduleId}/feuille-presence")
