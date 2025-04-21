@@ -1,7 +1,8 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   Filter,
@@ -13,85 +14,96 @@ import {
   AlertCircle,
   MapPin,
   ChevronLeft,
-} from "lucide-react"
-import ProfessorLayout from "../../components/professor/ProfessorLayout"
-import { moduleService } from "../../services/api"
+} from "lucide-react";
+import ProfessorLayout from "../../components/professor/ProfessorLayout";
+import { moduleService } from "../../services/api";
 
 function ProfessorModulesPage() {
-  const [modules, setModules] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [currentPage, setCurrentPage] = useState(0)
-  const [totalPages, setTotalPages] = useState(0)
-  const [sortConfig, setSortConfig] = useState({ key: "titre", direction: "asc" })
+  const navigate = useNavigate();
+  const [modules, setModules] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [sortConfig, setSortConfig] = useState({
+    key: "titre",
+    direction: "asc",
+  });
 
-  const pageSize = 5
+  const pageSize = 5;
 
   useEffect(() => {
-    fetchModules()
-  }, [currentPage, sortConfig])
+    fetchModules();
+  }, [currentPage, sortConfig]);
 
   const fetchModules = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const modulesData = await moduleService.getModulesEnseignes()
-      
+      const modulesData = await moduleService.getModulesEnseignes();
+
       // Apply client-side filtering and sorting
-      let filteredModules = [...modulesData]
-      
+      let filteredModules = [...modulesData];
+
       // Apply search filter
       if (searchTerm) {
-        filteredModules = filteredModules.filter(module => 
-          module.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (module.description && module.description.toLowerCase().includes(searchTerm.toLowerCase()))
-      )}
-      
+        filteredModules = filteredModules.filter(
+          (module) =>
+            module.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (module.description &&
+              module.description
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase()))
+        );
+      }
+
       // Apply sorting
       filteredModules.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
-          return sortConfig.direction === "asc" ? -1 : 1
+          return sortConfig.direction === "asc" ? -1 : 1;
         }
         if (a[sortConfig.key] > b[sortConfig.key]) {
-          return sortConfig.direction === "asc" ? 1 : -1
+          return sortConfig.direction === "asc" ? 1 : -1;
         }
-        return 0
-      })
-      
+        return 0;
+      });
+
       // Apply pagination
       const paginatedModules = filteredModules.slice(
         currentPage * pageSize,
         (currentPage + 1) * pageSize
-      )
-      
-      setModules(paginatedModules)
-      setTotalPages(Math.ceil(filteredModules.length / pageSize))
+      );
+
+      setModules(paginatedModules);
+      setTotalPages(Math.ceil(filteredModules.length / pageSize));
     } catch (err) {
-      console.error("Error fetching modules:", err)
-      setError("Une erreur s'est produite lors du chargement des modules.")
+      console.error("Error fetching modules:", err);
+      setError("Une erreur s'est produite lors du chargement des modules.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSearch = (e) => {
-    e.preventDefault()
-    setCurrentPage(0)
-    fetchModules()
-  }
+    e.preventDefault();
+    setCurrentPage(0);
+    fetchModules();
+  };
 
   const requestSort = (key) => {
-    let direction = "asc"
+    let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc"
+      direction = "desc";
     }
-    setSortConfig({ key, direction })
-  }
+    setSortConfig({ key, direction });
+  };
   return (
     <ProfessorLayout>
       <div className="py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Mes Modules</h1>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+            Mes Modules
+          </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Gérez vos modules et suivez votre progression.
           </p>
@@ -119,9 +131,8 @@ function ProfessorModulesPage() {
                 onClick={() => requestSort("titre")}
               >
                 <Filter className="h-4 w-4 mr-2" />
-                {sortConfig.key === "titre" && (
-                  sortConfig.direction === "asc" ? "A-Z" : "Z-A"
-                )}
+                {sortConfig.key === "titre" &&
+                  (sortConfig.direction === "asc" ? "A-Z" : "Z-A")}
               </button>
             </div>
           </div>
@@ -180,7 +191,14 @@ function ProfessorModulesPage() {
                           <button className="p-1 rounded-full text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             <Edit className="h-5 w-5" />
                           </button>
-                          <button className="p-1 rounded-full text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                          <button
+                            onClick={() =>
+                              navigate(
+                                `/professor/modules/${module.id}/attendance`
+                              )
+                            }
+                            className="p-1 rounded-full text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          >
                             <FileText className="h-5 w-5" />
                           </button>
                           <button className="p-1 rounded-full text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -207,7 +225,9 @@ function ProfessorModulesPage() {
                 <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 sm:px-6">
                   <div className="flex-1 flex justify-between sm:hidden">
                     <button
-                      onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                      onClick={() =>
+                        setCurrentPage(Math.max(0, currentPage - 1))
+                      }
                       disabled={currentPage === 0}
                       className={`relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md ${
                         currentPage === 0
@@ -218,7 +238,11 @@ function ProfessorModulesPage() {
                       Précédent
                     </button>
                     <button
-                      onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                      onClick={() =>
+                        setCurrentPage(
+                          Math.min(totalPages - 1, currentPage + 1)
+                        )
+                      }
                       disabled={currentPage === totalPages - 1}
                       className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md ${
                         currentPage === totalPages - 1
@@ -232,17 +256,31 @@ function ProfessorModulesPage() {
                   <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                     <div>
                       <p className="text-sm text-gray-700 dark:text-gray-300">
-                        Affichage de <span className="font-medium">{currentPage * pageSize + 1}</span> à{" "}
+                        Affichage de{" "}
                         <span className="font-medium">
-                          {Math.min((currentPage + 1) * pageSize, modules.length)}
+                          {currentPage * pageSize + 1}
                         </span>{" "}
-                        sur <span className="font-medium">{modules.length}</span> modules
+                        à{" "}
+                        <span className="font-medium">
+                          {Math.min(
+                            (currentPage + 1) * pageSize,
+                            modules.length
+                          )}
+                        </span>{" "}
+                        sur{" "}
+                        <span className="font-medium">{modules.length}</span>{" "}
+                        modules
                       </p>
                     </div>
                     <div>
-                      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                      <nav
+                        className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                        aria-label="Pagination"
+                      >
                         <button
-                          onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                          onClick={() =>
+                            setCurrentPage(Math.max(0, currentPage - 1))
+                          }
                           disabled={currentPage === 0}
                           className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 text-sm font-medium ${
                             currentPage === 0
@@ -267,7 +305,11 @@ function ProfessorModulesPage() {
                           </button>
                         ))}
                         <button
-                          onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                          onClick={() =>
+                            setCurrentPage(
+                              Math.min(totalPages - 1, currentPage + 1)
+                            )
+                          }
                           disabled={currentPage === totalPages - 1}
                           className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 text-sm font-medium ${
                             currentPage === totalPages - 1
@@ -288,7 +330,7 @@ function ProfessorModulesPage() {
         </div>
       </div>
     </ProfessorLayout>
-  )
+  );
 }
 
-export default ProfessorModulesPage
+export default ProfessorModulesPage;

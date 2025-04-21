@@ -73,20 +73,19 @@ function ProfessorLayout({ children }) {
   }
 
   const handleLogout = () => {
-    // Logique de déconnexion
     navigate("/connexion")
   }
 
   return (
-    <div className="h-screen flex overflow-hidden bg-gray-50 dark:bg-gray-900">
-      {/* Sidebar pour mobile */}
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Mobile sidebar */}
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 flex z-40 md:hidden"
+            className="fixed inset-0 z-40 md:hidden"
           >
             <motion.div
               initial={{ opacity: 0 }}
@@ -95,14 +94,13 @@ function ProfessorLayout({ children }) {
               transition={{ duration: 0.3 }}
               className="fixed inset-0 bg-gray-600 bg-opacity-75"
               onClick={toggleSidebar}
-            ></motion.div>
-
+            />
             <motion.div
               initial={{ x: -280 }}
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ duration: 0.3 }}
-              className="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-gray-800 shadow-xl"
+              className="relative flex flex-col w-full max-w-xs bg-white dark:bg-gray-800 shadow-xl"
             >
               <div className="absolute top-0 right-0 -mr-12 pt-2">
                 <button
@@ -145,25 +143,19 @@ function ProfessorLayout({ children }) {
                 </nav>
               </div>
               <div className="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4">
-                <div className="flex-shrink-0 group block">
-                  <div className="flex items-center">
-                    <div>
-                      <span className="inline-block h-10 w-10 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700">
-                        <svg
-                          className="h-full w-full text-gray-300 dark:text-gray-600"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                      </span>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-base font-medium text-gray-700 dark:text-gray-300">Dr. Robert Martin</p>
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300">
-                        Professeur
-                      </p>
-                    </div>
+                <div className="flex items-center">
+                  <div className="inline-block h-10 w-10 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700">
+                    <svg
+                      className="h-full w-full text-gray-300 dark:text-gray-600"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-base font-medium text-gray-700 dark:text-gray-300">Dr. Robert Martin</p>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Professeur</p>
                   </div>
                 </div>
               </div>
@@ -172,10 +164,10 @@ function ProfessorLayout({ children }) {
         )}
       </AnimatePresence>
 
-      {/* Sidebar pour desktop */}
-      <div className="hidden md:flex md:flex-shrink-0">
-        <div className="flex flex-col w-64">
-          <div className="flex flex-col h-0 flex-1 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      {/* Desktop sidebar */}
+      <div className="hidden md:flex md:flex-shrink-0 md:w-64">
+        <div className="flex flex-col w-full border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <div className="flex flex-col h-full">
             <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
               <div className="flex items-center flex-shrink-0 px-4">
                 <Link to="/professor/dashboard" className="flex items-center">
@@ -207,7 +199,7 @@ function ProfessorLayout({ children }) {
                 ))}
               </nav>
 
-              <div className="mt-5 px-2 space-y-1">
+              <div className="mt-auto px-2 space-y-1">
                 <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Support
                 </h3>
@@ -235,26 +227,20 @@ function ProfessorLayout({ children }) {
                 ))}
               </div>
             </div>
-            <div className="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4">
-              <div className="flex-shrink-0 w-full group block">
-                <div className="flex items-center">
-                  <div>
-                    <span className="inline-block h-9 w-9 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700">
-                      <svg
-                        className="h-full w-full text-gray-300 dark:text-gray-600"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                      </svg>
-                    </span>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Dr. Robert Martin</p>
-                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300">
-                      Professeur
-                    </p>
-                  </div>
+            <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex items-center">
+                <div className="inline-block h-9 w-9 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700">
+                  <svg
+                    className="h-full w-full text-gray-300 dark:text-gray-600"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Dr. Robert Martin</p>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Professeur</p>
                 </div>
               </div>
             </div>
@@ -262,9 +248,10 @@ function ProfessorLayout({ children }) {
         </div>
       </div>
 
-      {/* Contenu principal */}
-      <div className="flex flex-col w-0 flex-1 overflow-hidden">
-        <div className="relative z-10 flex-shrink-0 flex h-16 bg-white dark:bg-gray-800 shadow">
+      {/* Main content area */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        {/* Header */}
+        <div className="relative z-10 flex-shrink-0 h-16 bg-white dark:bg-gray-800 shadow flex">
           <button
             className="px-4 border-r border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 md:hidden"
             onClick={toggleSidebar}
@@ -275,9 +262,7 @@ function ProfessorLayout({ children }) {
           <div className="flex-1 px-4 flex justify-between">
             <div className="flex-1 flex">
               <div className="w-full flex md:ml-0">
-                <label htmlFor="search-field" className="sr-only">
-                  Rechercher
-                </label>
+                <label htmlFor="search-field" className="sr-only">Rechercher</label>
                 <div className="relative w-full text-gray-400 focus-within:text-gray-600 dark:focus-within:text-gray-300">
                   <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
                     <Search className="h-5 w-5" />
@@ -292,7 +277,6 @@ function ProfessorLayout({ children }) {
               </div>
             </div>
             <div className="ml-4 flex items-center md:ml-6">
-              {/* Bouton de thème */}
               <button
                 onClick={toggleTheme}
                 className="p-1 rounded-full text-gray-400 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -300,7 +284,6 @@ function ProfessorLayout({ children }) {
                 {theme === "dark" ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
               </button>
 
-              {/* Bouton de notifications */}
               <div className="ml-3 relative">
                 <button
                   onClick={toggleNotifications}
@@ -309,10 +292,8 @@ function ProfessorLayout({ children }) {
                   <span className="sr-only">Voir les notifications</span>
                   <Bell className="h-6 w-6" />
                 </button>
-                {/* Indicateur de notification */}
                 <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800"></span>
 
-                {/* Dropdown des notifications */}
                 {notificationsOpen && (
                   <div className="origin-top-right absolute right-0 mt-2 w-80 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none">
                     <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
@@ -352,7 +333,6 @@ function ProfessorLayout({ children }) {
                 )}
               </div>
 
-              {/* Menu utilisateur */}
               <div className="ml-3 relative">
                 <div>
                   <button
@@ -373,7 +353,6 @@ function ProfessorLayout({ children }) {
                   </button>
                 </div>
 
-                {/* Dropdown du menu utilisateur */}
                 {userMenuOpen && (
                   <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none">
                     <Link
@@ -410,11 +389,15 @@ function ProfessorLayout({ children }) {
           </div>
         </div>
 
-        <main className="flex-1 relative overflow-y-auto focus:outline-none">{children}</main>
+        {/* Page content */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 dark:bg-gray-900">
+          <div className="mx-auto max-w-full">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   )
 }
 
 export default ProfessorLayout
-
