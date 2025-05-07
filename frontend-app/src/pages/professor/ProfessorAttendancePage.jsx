@@ -6,14 +6,15 @@ import { moduleService } from "../../services/api"
 
 function ProfessorAttendance() {
   const navigate = useNavigate()
-  const { moduleId } = useParams()
+  const { moduleId, attendanceId } = useParams() // Added attendanceId for edit mode
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [moduleInfo, setModuleInfo] = useState(null)
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
-  const [duration, setDuration] = useState(2) // Default duration in hours
+  const [duration, setDuration] = useState(2)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,29 +25,47 @@ function ProfessorAttendance() {
         const currentModule = modules.find(m => m.id === moduleId);
         setModuleInfo(currentModule);
         
-        // Fetch students for attendance
-        const response = await moduleService.getEtudiantsPourFeuille(moduleId);
-        
-        // Handle different response formats
-        let studentsArray = [];
-        
-        if (Array.isArray(response)) {
-          studentsArray = response;
-        } else if (response.data && Array.isArray(response.data)) {
-          studentsArray = response.data;
-        } else if (response.etudiants && Array.isArray(response.etudiants)) {
-          studentsArray = response.etudiants;
+        if (attendanceId) {
+          setIsEditMode(true);
+          // Fetch existing attendance data
+          const existingAttendance = await moduleService.getDetailsFeuillePresence(moduleId, attendanceId);
+          console.log("Existing attendance:", existingAttendance);
+          
+          // Set date and duration
+          setDate(existingAttendance.dateSeance?.split('T')[0] || new Date().toISOString().split('T')[0]);
+          setDuration(existingAttendance.dureeHeures || 2);
+          
+          // Fetch students
+          const studentsResponse = await moduleService.getEtudiantsPourFeuille(moduleId);
+          const studentsData = studentsResponse.data || studentsResponse.etudiants || studentsResponse;
+          
+          if (!Array.isArray(studentsData)) {
+            throw new Error("Invalid students data format");
+          }
+          
+          // Safely handle absentsIds (default to empty array if undefined)
+          const absentsIds = existingAttendance.absentsIds || [];
+          
+          const studentsWithAttendance = studentsData.map(student => ({
+            ...student,
+            present: !absentsIds.includes(student.id)
+          }));
+          
+          setStudents(studentsWithAttendance);
         } else {
-          console.error("Unexpected response format:", response);
-          throw new Error("Format de réponse inattendu de l'API");
+          // Create mode - original implementation
+          const response = await moduleService.getEtudiantsPourFeuille(moduleId);
+          const studentsData = response.data || response.etudiants || response;
+          
+          if (!Array.isArray(studentsData)) {
+            throw new Error("Invalid students data format");
+          }
+          
+          setStudents(studentsData.map(student => ({
+            ...student,
+            present: true
+          })));
         }
-        
-        // Initialize attendance status
-        const studentsWithAttendance = studentsArray.map(student => ({
-          ...student,
-          present: true // default to present
-        }));
-        setStudents(studentsWithAttendance);
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Une erreur s'est produite lors du chargement des données.");
@@ -56,7 +75,7 @@ function ProfessorAttendance() {
     };
     
     fetchData();
-  }, [moduleId]);
+  }, [moduleId, attendanceId]);
 
   const toggleAttendance = (studentId) => {
     setStudents(students.map(student => 
@@ -69,22 +88,24 @@ function ProfessorAttendance() {
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      // Prepare attendance data according to backend requirements
       const attendanceData = {
-        dateSeance: new Date(date), // Convert to Date object
-        dureeHeures: duration, // Use the duration state
+        dateSeance: new Date(date),
+        dureeHeures: duration,
         absentsIds: students
           .filter(student => !student.present)
           .map(student => student.id)
       }
       
-      // Call the API to submit attendance
-      await moduleService.creerFeuillePresence(moduleId, attendanceData)
+      if (isEditMode) {
+        // Update existing attendance
+        await moduleService.modifierFeuillePresence(moduleId,attendanceId, attendanceData)
+        alert("Feuille de présence mise à jour avec succès!")
+      } else {
+        // Create new attendance
+        await moduleService.creerFeuillePresence(moduleId, attendanceData)
+        alert("Feuille de présence enregistrée avec succès!")
+      }
       
-      // Show success message
-      alert("Feuille de présence enregistrée avec succès!")
-      
-      // Navigate back to modules page
       navigate("/professor/modules")
     } catch (err) {
       console.error("Error submitting attendance:", err)
@@ -131,7 +152,7 @@ function ProfessorAttendance() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                Feuille de présence
+                {isEditMode ? "Modifier la feuille de présence" : "Nouvelle feuille de présence"}
               </h1>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 {moduleInfo?.titre} - {moduleInfo?.classe?.nom}
@@ -236,11 +257,11 @@ function ProfessorAttendance() {
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
-                    'Enregistrement...'
+                    isEditMode ? 'Mise à jour...' : 'Enregistrement...'
                   ) : (
                     <>
                       <FileText className="h-4 w-4 mr-2" />
-                      Enregistrer la feuille de présence
+                      {isEditMode ? 'Mettre à jour' : 'Enregistrer'} la feuille de présence
                     </>
                   )}
                 </button>

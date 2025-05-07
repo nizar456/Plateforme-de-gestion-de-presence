@@ -385,16 +385,16 @@ const moduleService = {
     }
   },
 
-  getDetailsFeuillePresence: async (id) => {
+  getDetailsFeuillePresence: async (moduleId, id) => {
     try {
-      const response = await api.get(`/professor/modules/feuilles-presence/${id}`);
+      const response = await api.get(`/professor/modules/${moduleId}/feuilles-presence/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error getting attendance sheet details:', error);
       throw error;
     }
   },
-
+  
   modifierFeuillePresence: async (moduleId, id, request) => {
     try {
       const response = await api.put(`/professor/modules/${moduleId}/feuilles-presence/${id}`, request);
@@ -439,6 +439,62 @@ const moduleService = {
   }
 };
 
+const studentController = {
+  // Get student's absences
+  getMyAbsences: async () => {
+    try {
+      const response = await api.get("/etudiant/absences");
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching student absences:', error);
+      throw error;
+    }
+  },
+
+  // Add or update justification for an absence
+  addJustification: async (absenceId, justificationData) => {
+    try {
+      // If using FormData for file upload
+      let response;
+      if (justificationData instanceof FormData) {
+        response = await api.put(`/etudiant/absences/${absenceId}/justification`, justificationData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      } else {
+        response = await api.put(`/etudiant/absences/${absenceId}/justification`, justificationData);
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Error adding justification:', error);
+      throw error;
+    }
+  },
+
+  // Get student profile data
+  getProfile: async () => {
+    try {
+      const response = await api.get("/etudiant/edit-profile");
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching student profile:', error);
+      throw error;
+    }
+  },
+
+  // Update student profile
+  updateProfile: async (profileData) => {
+    try {
+      const response = await api.put("/etudiant/edit-profile", profileData);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating student profile:', error);
+      throw error;
+    }
+  }
+};
+
 export {
   api,
   authService,
@@ -449,4 +505,5 @@ export {
   classeService,
   dashboardService,
   moduleService,
+  studentController
 };
