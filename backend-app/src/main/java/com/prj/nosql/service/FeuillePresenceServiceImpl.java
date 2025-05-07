@@ -127,6 +127,7 @@ public class FeuillePresenceServiceImpl implements FeuillePresenceService {
         dto.setJustifie(a.isJustifie());
         dto.setJustificationText(a.getJustificationText());
         dto.setJustificationStatut(a.getJustificationStatut());
+        dto.setJustificationDocumentPath(a.getJustificationDocumentPath());
         return dto;
     }
     public FeuillePresencePreparationDto getEtudiantsDuModule(String moduleId) {
