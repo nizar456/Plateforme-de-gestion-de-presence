@@ -7,6 +7,7 @@ import com.prj.nosql.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -178,5 +179,15 @@ public class ModuleService {
                 .toList();
 
         return new ModuleEditDataResponse(currentData, classes, professeurs);
+    }
+    public List<ModuleDto> getModulesByEtudiant(String etudiantId) {
+// Trouver la classe contenant l'étudiant
+        Classe classe = classeRepository.findAll().stream()
+                .filter(c -> c.getEtudiantIds().contains(etudiantId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Classe non trouvée pour cet étudiant"));
+
+        List<Module> modules = moduleRepository.findByClasseId(classe.getId());
+        return modules.stream().map(ModuleDto::fromEntity).toList();
     }
 }

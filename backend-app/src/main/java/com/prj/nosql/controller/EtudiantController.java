@@ -3,10 +3,12 @@ package com.prj.nosql.controller;
 
 import com.prj.nosql.dto.AbsenceEtudiantDto;
 import com.prj.nosql.dto.JustificationRequest;
+import com.prj.nosql.dto.ModuleDto;
 import com.prj.nosql.dto.UpdateUserRequest;
 import com.prj.nosql.model.User;
 import com.prj.nosql.service.AbsenceService;
 import com.prj.nosql.service.AuthService;
+import com.prj.nosql.service.ModuleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,6 +23,15 @@ public class  EtudiantController {
     private AbsenceService absenceService;
     @Autowired
     private AuthService authService;
+    @Autowired
+    private ModuleService moduleService;
+
+    @GetMapping("/mes-modules")
+    public ResponseEntity<List<ModuleDto>> voirMesModules(Authentication auth) {
+        User etudiant = (User) auth.getPrincipal();
+        List<ModuleDto> modules = moduleService.getModulesByEtudiant(etudiant.getId());
+        return ResponseEntity.ok(modules);
+    }
     @GetMapping("/absences")
     public ResponseEntity<List<AbsenceEtudiantDto>> voirMesAbsences(Authentication auth) {
         User etudiant = (User) auth.getPrincipal();
