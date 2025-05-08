@@ -32,6 +32,8 @@ public class AbsenceServiceImpl implements AbsenceService{
     private ModuleRepository moduleRepo;
     @Autowired
     private UserRepository userRepo;
+    @Autowired
+    private MailService mailService;
 
     @Override
     public List<AbsenceEtudiantDto> getAbsencesByEtudiant(String etudiantId) {
@@ -86,6 +88,36 @@ public class AbsenceServiceImpl implements AbsenceService{
         }
 
         absenceRepo.save(absence);
+        // Envoi d’email au professeur si email présent
+        try {
+            // Récupération des infos
+            User etudiant = userRepo.findById(etudiantId)
+                    .orElseThrow(() -> new RuntimeException("Étudiant non trouvé"));
+
+            FeuillePresence feuille = feuilleRepo.findById(absence.getFeuillePresenceId())
+                    .orElseThrow(() -> new RuntimeException("Feuille de présence non trouvée"));
+
+            Module module = moduleRepo.findById(feuille.getModuleId())
+                    .orElseThrow(() -> new RuntimeException("Module non trouvé"));
+
+            User professeur = userRepo.findById(module.getProfesseurId())
+                    .orElseThrow(() -> new RuntimeException("Professeur non trouvé"));
+
+            String emailProf = professeur.getEmail();
+            if (emailProf != null && !emailProf.isBlank()) {
+                mailService.envoyerMailJustificationAuProf(
+                        emailProf,
+                        etudiant.getNom(),
+                        etudiant.getPrenom(),
+                        module.getTitre(),
+                        feuille.getDateSeance()
+                );
+            }
+
+        } catch (Exception e) {
+            System.err.println("Erreur lors de l'envoi du mail au professeur : " + e.getMessage());
+            e.printStackTrace();
+        }
     }
     @Override
     public List<JustificationResponseDto> getJustificationsEnAttente(String professeurId) {

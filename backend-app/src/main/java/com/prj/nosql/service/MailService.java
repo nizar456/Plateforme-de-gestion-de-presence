@@ -31,4 +31,15 @@ public class MailService {
                 + "Cordialement,\nL'administration");
         mailSender.send(message);
     }
+    public void envoyerMailJustificationAuProf(String emailProf, String nomEtudiant, String prenomEtudiant, String module, Date date) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(emailProf);
+        message.setSubject("Nouvelle justification d'absence");
+        message.setText("Bonjour,\n\n"
+                + "L'étudiant(e) " + prenomEtudiant + " " + nomEtudiant
+                + " a soumis une justification pour son absence au module " + module + " le " + date + ".\n"
+                + "Veuillez vérifier et traiter la justification via l’espace professeur.\n\n"
+                + "Cordialement,\nL'administration");
+        mailSender.send(message);
+    }
 }
