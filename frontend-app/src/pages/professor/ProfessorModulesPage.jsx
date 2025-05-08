@@ -41,7 +41,7 @@ function ProfessorModulesPage() {
     setLoading(true);
     try {
       const modulesData = await moduleService.getModulesEnseignes();
-
+      
       // Apply client-side filtering and sorting
       let filteredModules = [...modulesData];
 
@@ -171,7 +171,7 @@ function ProfessorModulesPage() {
                             </p>
                             {module.classe?.nom && (
                               <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                {module.classe.nom}
+                                {module.classe.nom} - {module.classe.niveau}
                               </span>
                             )}
                           </div>
@@ -183,7 +183,7 @@ function ProfessorModulesPage() {
                             </div>
                             <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400 sm:mt-0">
                               <Users className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                              {module.etudiants?.length || 0} étudiants
+                              {module.classe.etudiantIds?.length || 0} étudiants
                             </div>
                           </div>
                         </div>
@@ -204,7 +204,14 @@ function ProfessorModulesPage() {
                           <button className="p-1 rounded-full text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             <Users className="h-5 w-5" />
                           </button>
-                          <button className="p-1 rounded-full text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                          <button
+                            onClick={() =>
+                              navigate(
+                                `/professor/modules/${module.id}/attendance-history`
+                              )
+                            }
+                            className="p-1 rounded-full text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          >
                             <ChevronRight className="h-5 w-5" />
                           </button>
                         </div>

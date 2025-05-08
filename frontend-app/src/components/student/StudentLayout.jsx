@@ -36,11 +36,8 @@ function StudentLayout({ children }) {
   // Navigation links specific to students
   const navigation = [
     { name: "Tableau de Bord", href: "/student/dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
-    { name: "Mes Cours", href: "/student/courses", icon: <BookOpen className="h-5 w-5" /> },
-    { name: "Emploi du Temps", href: "/student/schedule", icon: <Calendar className="h-5 w-5" /> },
-    { name: "Devoirs", href: "/student/assignments", icon: <FileText className="h-5 w-5" /> },
-    { name: "Notes", href: "/student/grades", icon: <Award className="h-5 w-5" /> },
-    { name: "Présence", href: "/student/attendance", icon: <Clock className="h-5 w-5" /> },
+    { name: "Mes Abscences", href: "/student/abscences", icon: <BookOpen className="h-5 w-5" /> },
+    
   ]
 
   const secondaryNavigation = [

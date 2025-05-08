@@ -26,10 +26,12 @@ import ProfessorDashboardPage from "./pages/professor/ProfessorDashboardPage"
 import ProfessorModulesPage from "./pages/professor/ProfessorModulesPage";
 import ProfessorAttendancePage from './pages/professor/ProfessorAttendancePage'
 import ProfessorStudentsPage from "./pages/professor/ProfessorStudentsPage"
+import ProfessorAttendanceDetails from "./pages/professor/ProfessorAttendanceDetails"
+import ProfessorAttendanceHistoryPage from "./pages/professor/ProfessorAttendanceHistoryPage"
 
 // Student pages (placeholders - you'll need to create these)
 import StudentDashboardPage from "./pages/student/StudentDashboardPage"
-// import StudentCoursesPage from "./pages/student/StudentCoursesPage"
+import StudentMesAbsencesPage from "./pages/student/StudentMesAbsencesPage"
 // import StudentGradesPage from "./pages/student/StudentGradesPage"
 
 function App() {
@@ -132,6 +134,30 @@ function App() {
           }
         />
         <Route
+          path="/professor/attendance/:moduleId/:attendanceId/details"
+          element={
+            <ProtectedRoute requiredRole="PROFESSOR">
+              <ProfessorAttendanceDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/professor/modules/:moduleId/attendance/:attendanceId/edit"
+          element={
+            <ProtectedRoute requiredRole="PROFESSOR">
+              <ProfessorAttendancePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/professor/modules/:moduleId/attendance-history"
+          element={
+            <ProtectedRoute requiredRole="PROFESSOR">
+              <ProfessorAttendanceHistoryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/professor/students"
           element={
             <ProtectedRoute requiredRole="PROFESSOR">
@@ -147,6 +173,14 @@ function App() {
           element={
             <ProtectedRoute requiredRole="STUDENT">
               <StudentDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/abscences"
+          element={
+            <ProtectedRoute requiredRole="STUDENT">
+              <StudentMesAbsencesPage />
             </ProtectedRoute>
           }
         />
