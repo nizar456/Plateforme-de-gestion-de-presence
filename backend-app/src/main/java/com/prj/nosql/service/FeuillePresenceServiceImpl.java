@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class FeuillePresenceServiceImpl implements FeuillePresenceService {
@@ -98,6 +99,14 @@ public class FeuillePresenceServiceImpl implements FeuillePresenceService {
             return toDetailsDto(f, absences);
         }).toList();
     }
+    @Override
+    public List<FeuillePresenceDetailsEnrichedDto> getAllFeuillePresence() {
+        List<FeuillePresence> feuilles = feuilleRepo.findAll();
+        return feuilles.stream().map(f -> {
+            List<Absence> absences = absenceRepo.findByFeuillePresenceId(f.getId());
+            return toDetailsDtoEnriched(f, absences);
+        }).toList();
+    }
 
     @Override
     public FeuillePresenceDetailsDto getDetailsFeuillePresence(String feuilleId) {
@@ -118,6 +127,36 @@ public class FeuillePresenceServiceImpl implements FeuillePresenceService {
         dto.setDureeHeures(feuille.getDureeHeures());
         dto.setCreatedAt(feuille.getCreatedAt());
         dto.setAbsences(absences.stream().map(this::toDto).toList());
+        return dto;
+    }
+    public FeuillePresenceDetailsEnrichedDto toDetailsDtoEnriched(FeuillePresence feuille, List<Absence> absences) {
+        FeuillePresenceDetailsEnrichedDto dto = new FeuillePresenceDetailsEnrichedDto();
+        // Hérités de la classe de base
+        dto.setId(feuille.getId());
+        dto.setModuleId(feuille.getModuleId());
+        dto.setDateSeance(feuille.getDateSeance());
+        dto.setDureeHeures(feuille.getDureeHeures());
+        dto.setCreatedAt(feuille.getCreatedAt());
+        dto.setAbsences(absences.stream().map(AbsenceDto::fromEntity).collect(Collectors.toList()));
+
+// Infos enrichies
+        Module module = moduleRepo.findById(feuille.getModuleId()).orElse(null);
+        if (module != null) {
+            dto.setNomModule(module.getTitre());
+
+            Classe classe = classeRepo.findById(module.getClasseId()).orElse(null);
+            if (classe != null) {
+                dto.setNomClasse(classe.getNom());
+                dto.setNiveauClasse(classe.getNiveau().name());
+            }
+
+            User prof = userRepo.findById(module.getProfesseurId()).orElse(null);
+            if (prof != null) {
+                dto.setNomProfesseur(prof.getNom());
+                dto.setPrenomProfesseur(prof.getPrenom());
+            }
+        }
+
         return dto;
     }
 
