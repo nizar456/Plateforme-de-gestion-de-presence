@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class NosqlApplication {
-
+// test comment
 	public static void main(String[] args) {
 		SpringApplication.run(NosqlApplication.class, args);
 	}
