@@ -58,7 +58,7 @@ MongoDB (NoSQL)
 - **Construire et lancer tous les services (reconstruction forcée)** :
 
 ```powershell
-cd "e:\Spring_ Nosql\Plateforme-de-gestion-de-presence"
+cd "prj_path\Plateforme-de-gestion-de-presence"
 docker compose up --build
 ```
 
