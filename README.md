@@ -21,6 +21,7 @@ Conséquences de l'absence de digitalisation
 ❌ Perte de transparence et de fiabilité dans la gestion des présences.
 
 # Frontend – React
+
 Backend – Spring Ecosystem
 MongoDB (NoSQL)
 
@@ -51,3 +52,50 @@ MongoDB (NoSQL)
 ![image.png](images/image%209.png)
 
 ![image.png](images/image%2010.png)
+
+## **Déploiement avec Docker Compose**
+
+- **Construire et lancer tous les services (reconstruction forcée)** :
+
+```powershell
+cd "e:\Spring_ Nosql\Plateforme-de-gestion-de-presence"
+docker compose up --build
+```
+
+- **Lancer en arrière-plan (detached)** :
+
+```powershell
+docker compose up -d --build
+```
+
+- **Voir les logs combinés** :
+
+```powershell
+docker compose logs -f
+```
+
+- **Voir les logs d'un service (ex. backend)** :
+
+```powershell
+docker compose logs -f backend
+```
+
+- **Arrêter et supprimer les conteneurs (et réseaux)** :
+
+```powershell
+docker compose down
+```
+
+- **Supprimer volumes (pour réinitialiser la base de données)** :
+
+```powershell
+docker compose down -v
+```
+
+## **URLs après démarrage**
+
+- **Frontend (UI)** : `http://localhost:3000`
+- **Backend API** : `http://localhost:8082/api`
+- **MongoDB (local depuis l'hôte)** : `mongodb://localhost:27017` (DB name: `university_auth`)
+
+Si vous souhaitez que le frontend appelle le backend via le réseau Docker (ex. `http://backend:8082/api`) pour ne pas exposer le backend sur l'hôte, je peux rendre l'URL de l'API configurable au runtime dans le frontend.
