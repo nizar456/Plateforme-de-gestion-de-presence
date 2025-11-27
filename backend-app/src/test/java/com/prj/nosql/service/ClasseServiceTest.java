@@ -21,30 +21,29 @@ class ClasseServiceTest {
 
     @Mock
     private ClasseRepository classeRepository;
-
     @Mock
     private UserRepository userRepository;
-
     @InjectMocks
     private ClasseService classeService;
 
     @Test
     void createClasse_shouldSaveAndReturnResponse() {
-        // Arrange
+        // Arrange - given
         ClasseCreateRequest request = new ClasseCreateRequest();
         request.setNom("Classe A");
         request.setNiveau(Niveau.PREMIERE_ANNEE);
 
-        when(classeRepository.save(any(Classe.class))).thenAnswer(invocation -> {
+        when(classeRepository.save(any(Classe.class))).thenAnswer(
+                invocation -> {
             Classe arg = invocation.getArgument(0);
             arg.setId("generated-id-1");
             return arg;
         });
 
-        // Act
+        // Act - when
         ClasseResponse response = classeService.createClasse(request);
 
-        // Assert
+        // Assert - then
         assertNotNull(response);
         assertEquals("generated-id-1", response.getId());
         assertEquals("Classe A", response.getNom());

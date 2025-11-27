@@ -1,5 +1,6 @@
 package com.prj.nosql.model;
 
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
@@ -13,6 +14,7 @@ import java.util.Collections;
 import java.util.Date;
 
 @Data
+@Builder
 @Document(collection = "users")
 public class User implements UserDetails{
     @Id

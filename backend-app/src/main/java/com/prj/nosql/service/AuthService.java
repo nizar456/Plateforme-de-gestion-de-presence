@@ -58,16 +58,17 @@ public class AuthService {
     public void init() {
         if (userRepository.count() == 0) {
             // Create initial admin account with fixed credentials
-            User admin = new User();
-            admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode("admin")); // Encoded password
-            admin.setRole(UserRole.ADMIN);
-            admin.setNom("Administrateur");
-            admin.setPrenom("Principale");
-            admin.setEmail("admin@university.edu");
-            admin.setPasswordChanged(false);
-            admin.setCreatedAt(new Date());
-            admin.setUpdatedAt(new Date());
+            User admin = User.builder()
+                    .username("admin")
+                    .password(passwordEncoder.encode("admin"))
+                    .role(UserRole.ADMIN)
+                    .nom("Administrateur")
+                    .prenom("Principale")
+                    .email("admin@university.edu")
+                    .passwordChanged(false)
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .build();
 
             userRepository.save(admin);
             System.out.println("Compte admin initial créé avec les identifiants:");
@@ -100,13 +101,16 @@ public class AuthService {
         String password = generateRandomPassword();
         String encryptedPassword = encryptPassword(password);
 
-        User user = new User();
-        user.setNom(request.getNom());
-        user.setPrenom(request.getPrenom());
-        user.setPlainPassword(encryptedPassword);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setUsername(generateUniqueUsername(request.getRole()));
-        user.setRole(request.getRole());
+        User user = User.builder()
+                .nom(request.getNom())
+                .prenom(request.getPrenom())
+                .plainPassword(encryptedPassword)
+                .password(passwordEncoder.encode(password))
+                .username(generateUniqueUsername(request.getRole()))
+                .role(request.getRole())
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
 
         User savedUser = userRepository.save(user);
 

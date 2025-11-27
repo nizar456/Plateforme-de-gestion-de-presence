@@ -1,7 +1,9 @@
 package com.prj.nosql.dto;
 
+import lombok.Builder;
 import lombok.Data;
 
+@Builder
 @Data
 public class SimpleUserResponse {
     private String id;
