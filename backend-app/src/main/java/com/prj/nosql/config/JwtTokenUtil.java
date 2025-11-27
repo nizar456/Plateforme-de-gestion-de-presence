@@ -18,10 +18,10 @@ import java.util.function.Function;
 public class JwtTokenUtil {
     // Provide safe defaults so tests and CI won't fail when properties aren't present.
     // IMPORTANT: change these for real environments — do not use these values in production.
-    @Value("${jwt.secret:DefaultTestSecretPleaseChange}")
+    @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration:86400000}")
+    @Value("${jwt.expiration}")
     private Long expiration;
 
     private Key getSigningKey() {
