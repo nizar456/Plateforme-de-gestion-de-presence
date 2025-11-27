@@ -111,19 +111,54 @@ pipeline {
         script {
           if (isUnix()) {
             sh "docker compose -f ${DOCKER_COMPOSE_FILE} up -d --build"
-            // wait for services to come up (adjust timeout as needed)
-            sh 'sleep 8'
-            // 1) Check backend health (if your app exposes a health endpoint)
-            sh 'curl -sSf http://localhost:8082/api || (echo "Backend not available" && exit 1)'
-            // 2) Check frontend (served by nginx at 3000)
-            sh 'curl -sSf http://localhost:3000 || (echo "Frontend not available" && exit 1)'
+
+            // wait & retry for backend health endpoint
+            def backendOk = false
+            for (int i = 0; i < 30; ++i) {
+              def status = sh(script: "curl -sSf http://localhost:8082/api > /dev/null 2>&1", returnStatus: true)
+              if (status == 0) { backendOk = true; break }
+              echo "Backend not yet available (attempt ${i+1}/30)"
+              sh 'sleep 2'
+            }
+            if (!backendOk) {
+              echo 'Backend failed to become available — printing docker-compose ps and backend logs'
+              sh "docker compose -f ${DOCKER_COMPOSE_FILE} ps"
+              sh "docker compose -f ${DOCKER_COMPOSE_FILE} logs --no-color backend || true"
+              error 'Backend unavailable after retries'
+            }
+
+            // Quick check for frontend
+            def frontStatus = sh(script: "curl -sSf http://localhost:3000 > /dev/null 2>&1", returnStatus: true)
+            if (frontStatus != 0) {
+              echo 'Frontend not available — collecting logs'
+              sh "docker compose -f ${DOCKER_COMPOSE_FILE} logs --no-color frontend || true"
+              error 'Frontend unavailable'
+            }
           } else {
             bat "docker compose -f ${DOCKER_COMPOSE_FILE} up -d --build"
-            // wait 8 seconds on Windows
-            bat 'powershell -Command "Start-Sleep -s 8"'
-            // Use PowerShell to check endpoints — throw on non-success
-            bat "powershell -Command \"try { Invoke-WebRequest -UseBasicParsing -Uri http://localhost:8082/api -TimeoutSec 10 -ErrorAction Stop; } catch { Write-Error -Message 'Backend not available'; exit 1 }\""
-            bat "powershell -Command \"try { Invoke-WebRequest -UseBasicParsing -Uri http://localhost:3000 -TimeoutSec 10 -ErrorAction Stop; } catch { Write-Error -Message 'Frontend not available'; exit 1 }\""
+
+            // Windows: wait & retry backend using PowerShell with short timeout
+            def backendOk = false
+            for (int i = 0; i < 30; ++i) {
+              def rc = bat(returnStatus: true, script: "powershell -Command \"try { Invoke-WebRequest -UseBasicParsing -Uri http://localhost:8082/api -TimeoutSec 3 -ErrorAction Stop; exit 0 } catch { exit 1 }\"")
+              if (rc == 0) { backendOk = true; break }
+              echo "Backend not yet available (attempt ${i+1}/30)"
+              bat 'powershell -Command "Start-Sleep -s 2"'
+            }
+            if (!backendOk) {
+              echo 'Backend failed to become available on Windows — printing docker-compose ps and backend logs'
+              bat "docker compose -f ${DOCKER_COMPOSE_FILE} ps"
+              bat "docker compose -f ${DOCKER_COMPOSE_FILE} logs --no-color backend || exit 0"
+              error 'Backend unavailable after retries (Windows)'
+            }
+
+            // Frontend quick check on Windows
+            def rc2 = bat(returnStatus: true, script: "powershell -Command \"try { Invoke-WebRequest -UseBasicParsing -Uri http://localhost:3000 -TimeoutSec 3 -ErrorAction Stop; exit 0 } catch { exit 1 }\"")
+            if (rc2 != 0) {
+              echo 'Frontend not available on Windows — collecting logs'
+              bat "docker compose -f ${DOCKER_COMPOSE_FILE} logs --no-color frontend || exit 0"
+              error 'Frontend unavailable (Windows)'
+            }
           }
         }
       }
