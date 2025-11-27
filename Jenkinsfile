@@ -7,9 +7,6 @@ pipeline {
     BACKEND_IMAGE = "nosql-backend:${env.BUILD_NUMBER}"
     FRONTEND_IMAGE = "nosql-frontend:${env.BUILD_NUMBER}"
     DOCKER_COMPOSE_FILE = 'docker-compose.yml'
-    // Optional Jenkins secret credential id. Leave empty to run without injection.
-    JWT_CREDENTIALS_ID = ''
-    JWT_EXPIRATION = '86400000'
   }
 
   options {
@@ -53,34 +50,15 @@ pipeline {
         script {
           // Use the maven docker image and attach it to the same docker network so tests can access mongo
           if (isUnix()) {
-            // if a credential id is configured, inject it as JWT_SECRET into the build
-            if (env.JWT_CREDENTIALS_ID?.trim()) {
-              withCredentials([string(credentialsId: env.JWT_CREDENTIALS_ID, variable: 'JWT_SECRET')]) {
-                def mvnImage = docker.image('maven:3.9.6-eclipse-temurin-21')
-                mvnImage.pull()
-                mvnImage.inside("--network jenkins-net -e MAVEN_OPTS='-Xmx1g' -e JWT_SECRET='${env.JWT_SECRET}' -e JWT_EXPIRATION='${env.JWT_EXPIRATION}'") {
-                  sh 'cd backend-app && mvn -B -Djwt.secret="${JWT_SECRET}" -Djwt.expiration="${JWT_EXPIRATION}" -DskipTests=false clean test package'
-                }
-              }
-            } else {
-              def mvnImage = docker.image('maven:3.9.6-eclipse-temurin-21')
-              mvnImage.pull()
-              mvnImage.inside("--network jenkins-net -e MAVEN_OPTS='-Xmx1g'") {
-                // If some tests are slow or require DB, keep them; adjust flags if you want to skip slow integration tests.
-                // make sure we run inside the backend-app module where the pom.xml lives
-                sh 'cd backend-app && mvn -B -DskipTests=false clean test package'
-              }
+            def mvnImage = docker.image('maven:3.9.6-eclipse-temurin-21')
+            mvnImage.pull()
+            mvnImage.inside("--network jenkins-net -e MAVEN_OPTS='-Xmx1g'") {
+              // If some tests are slow or require DB, keep them; adjust flags if you want to skip slow integration tests.
+              sh 'mvn -B -DskipTests=false clean test package'
             }
           } else {
-            // Windows agents
-            if (env.JWT_CREDENTIALS_ID?.trim()) {
-              withCredentials([string(credentialsId: env.JWT_CREDENTIALS_ID, variable: 'JWT_SECRET')]) {
-                bat "cd backend-app && mvn -B -Djwt.secret=%JWT_SECRET% -Djwt.expiration=${env.JWT_EXPIRATION} -DskipTests=false clean test package"
-              }
-            } else {
-              // On Windows agents we attempt to run mvn from the node (ensure maven is installed there)
-              bat 'cd backend-app && mvn -B -DskipTests=false clean test package'
-            }
+            // On Windows agents we attempt to run mvn from the node (ensure maven is installed there)
+            bat 'mvn -B -DskipTests=false clean test package'
           }
         }
       }
