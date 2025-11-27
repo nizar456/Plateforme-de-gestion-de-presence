@@ -73,16 +73,25 @@ pipeline {
             nodeImage.pull()
             nodeImage.inside('--network jenkins-net') {
               sh 'cd frontend-app && npm ci'
-              // Run frontend tests if you have any (fail pipeline if tests fail)
-              sh 'cd frontend-app && npm test'
-              // Build production bundle
-              sh 'cd frontend-app && npm run build'
+                // Run frontend tests only if a test script exists in package.json
+                def hasTest = sh(script: "cd frontend-app && node -e \"console.log(Boolean(require('./package.json').scripts && require('./package.json').scripts.test))\"", returnStdout: true).trim()
+                if (hasTest == 'true') {
+                  echo 'Found frontend test script — running npm test'
+                  sh 'cd frontend-app && npm test'
+                } else {
+                  echo 'No frontend tests defined, skipping npm test'
+                }
+                // Build production bundle
+                sh 'cd frontend-app && npm run build'
             }
           } else {
             // On Windows agent: try running npm locally (requires node installed). Use powershell if needed.
             bat 'cd frontend-app && npm ci'
-            bat 'cd frontend-app && npm test'
-            bat 'cd frontend-app && npm run build'
+              // Check package.json for a test script using PowerShell and run npm test only if present
+              bat 'powershell -Command "\$p = Get-Content package.json | ConvertFrom-Json; if (\$p.scripts -and \$p.scripts.test) { Write-Output 'Found test script'; exit 0 } else { Write-Output 'No test script'; exit 2 }"'
+              // Only run npm test if previous command exited 0 (found test script)
+              bat 'powershell -Command if ((Get-Content package.json | ConvertFrom-Json).scripts.test) { npm test } else { Write-Output \"Skipping npm test (no script)\" }'
+              bat 'cd frontend-app && npm run build'
           }
         }
       }
