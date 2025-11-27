@@ -54,11 +54,12 @@ pipeline {
             mvnImage.pull()
             mvnImage.inside("--network jenkins-net -e MAVEN_OPTS='-Xmx1g'") {
               // If some tests are slow or require DB, keep them; adjust flags if you want to skip slow integration tests.
-              sh 'mvn -B -DskipTests=false clean test package'
+              // make sure we run inside the backend-app module where the pom.xml lives
+              sh 'cd backend-app && mvn -B -DskipTests=false clean test package'
             }
           } else {
             // On Windows agents we attempt to run mvn from the node (ensure maven is installed there)
-            bat 'mvn -B -DskipTests=false clean test package'
+            bat 'cd backend-app && mvn -B -DskipTests=false clean test package'
           }
         }
       }
