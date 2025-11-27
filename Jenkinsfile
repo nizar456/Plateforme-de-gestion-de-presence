@@ -122,8 +122,8 @@ pipeline {
             // wait 8 seconds on Windows
             bat 'powershell -Command "Start-Sleep -s 8"'
             // Use PowerShell to check endpoints — throw on non-success
-            bat 'powershell -Command "try { Invoke-WebRequest -UseBasicParsing -Uri http://localhost:8082/api -TimeoutSec 10 -ErrorAction Stop; } catch { Write-Error \"Backend not available\"; exit 1 }"'
-            bat 'powershell -Command "try { Invoke-WebRequest -UseBasicParsing -Uri http://localhost:3000 -TimeoutSec 10 -ErrorAction Stop; } catch { Write-Error \"Frontend not available\"; exit 1 }"'
+            bat "powershell -Command \"try { Invoke-WebRequest -UseBasicParsing -Uri http://localhost:8082/api -TimeoutSec 10 -ErrorAction Stop; } catch { Write-Error -Message 'Backend not available'; exit 1 }\""
+            bat "powershell -Command \"try { Invoke-WebRequest -UseBasicParsing -Uri http://localhost:3000 -TimeoutSec 10 -ErrorAction Stop; } catch { Write-Error -Message 'Frontend not available'; exit 1 }\""
           }
         }
       }
