@@ -12,8 +12,9 @@ pipeline {
   options {
     // keep the log history for troubleshooting
     timestamps()
-    // faster failure detection
-    ansiColor('xterm')
+    // faster failure detection — note: `ansiColor` as an options entry isn't valid on all Jenkins versions.
+    // If you want colored logs enable the AnsiColor plugin on the controller and use `ansiColor` as a wrapper
+    // in the steps (example: ansiColor('xterm') { sh '...' }) or configure the job wrappers in your Jenkins GUI.
   }
 
   stages {
