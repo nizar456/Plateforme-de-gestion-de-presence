@@ -16,8 +16,7 @@ import java.util.function.Function;
 
 @Component
 public class JwtTokenUtil {
-    // Provide safe defaults so tests and CI won't fail when properties aren't present.
-    // IMPORTANT: change these for real environments — do not use these values in production.
+
     @Value("${jwt.secret}")
     private String secret;
 
